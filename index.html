@@ -92,7 +92,7 @@ canvas.addEventListener('mousedown', e => {
     }
   }
   if (e.button === 2 && gameState === STATE.PLAYING) { // right click
-    fireMissile();
+    fireMissileFor(player);
   }
 });
 canvas.addEventListener('mouseup', e => {
@@ -109,10 +109,23 @@ window.addEventListener('keydown', e => {
     gameState = STATE.PLAYING;
     e.preventDefault();
   }
-  // Barrel roll: Q = roll left, E = roll right
+  // P1 Barrel roll: Q = roll left, E = roll right
   if (gameState === STATE.PLAYING && player.alive && player.barrelRollTimer <= 0) {
-    if (e.code === 'KeyQ') startBarrelRoll(-1);
-    if (e.code === 'KeyE') startBarrelRoll(1);
+    if (e.code === 'KeyQ') startBarrelRollFor(player, -1);
+    if (e.code === 'KeyE') startBarrelRollFor(player, 1);
+  }
+  // P2 Barrel roll: R = roll left, T = roll right
+  if (gameState === STATE.PLAYING && player2.alive && player2.barrelRollTimer <= 0) {
+    if (e.code === 'KeyR') startBarrelRollFor(player2, -1);
+    if (e.code === 'KeyT') startBarrelRollFor(player2, 1);
+  }
+  // P2 missile: F
+  if (e.code === 'KeyF' && gameState === STATE.PLAYING && player2.alive) {
+    fireMissileFor(player2);
+  }
+  // Title/gameover start with keyboard too
+  if (e.code === 'Space' && (gameState === STATE.TITLE || gameState === STATE.GAMEOVER)) {
+    startGame();
   }
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
@@ -314,31 +327,31 @@ function startEngineHum() {
 const BARREL_ROLL_DURATION = 24; // frames (~0.4s)
 const BARREL_ROLL_COOLDOWN = 40; // frames cooldown after roll
 
-function startBarrelRoll(dir) {
-  if (player.barrelRollCooldown > 0) return;
-  player.barrelRollTimer = BARREL_ROLL_DURATION;
-  player.barrelRollDir = dir;
-  player.barrelRollAngle = 0;
-  player.barrelRollCooldown = BARREL_ROLL_DURATION + BARREL_ROLL_COOLDOWN;
-  player.invulnTimer = Math.max(player.invulnTimer, BARREL_ROLL_DURATION); // invulnerable during roll
+function startBarrelRollFor(p, dir) {
+  if (p.barrelRollCooldown > 0) return;
+  p.barrelRollTimer = BARREL_ROLL_DURATION;
+  p.barrelRollDir = dir;
+  p.barrelRollAngle = 0;
+  p.barrelRollCooldown = BARREL_ROLL_DURATION + BARREL_ROLL_COOLDOWN;
+  p.invulnTimer = Math.max(p.invulnTimer, BARREL_ROLL_DURATION); // invulnerable during roll
   playBarrelRollSound();
 }
 
-function updateBarrelRoll() {
-  if (player.barrelRollCooldown > 0) player.barrelRollCooldown--;
-  if (player.barrelRollTimer > 0) {
-    player.barrelRollTimer--;
-    const progress = 1 - (player.barrelRollTimer / BARREL_ROLL_DURATION);
-    player.barrelRollAngle = player.barrelRollDir * progress * TAU;
+function updateBarrelRollFor(p) {
+  if (p.barrelRollCooldown > 0) p.barrelRollCooldown--;
+  if (p.barrelRollTimer > 0) {
+    p.barrelRollTimer--;
+    const progress = 1 - (p.barrelRollTimer / BARREL_ROLL_DURATION);
+    p.barrelRollAngle = p.barrelRollDir * progress * TAU;
 
     // Lateral dodge boost during roll
-    player.vx += player.barrelRollDir * 3.5;
+    p.vx += p.barrelRollDir * 3.5;
 
     // Sparkle trail during roll
     for (let i = 0; i < 3; i++) {
       spawnParticle(
-        player.x + (Math.random() - 0.5) * 30,
-        player.y + (Math.random() - 0.5) * 30,
+        p.x + (Math.random() - 0.5) * 30,
+        p.y + (Math.random() - 0.5) * 30,
         (Math.random() - 0.5) * 2,
         Math.random() * 2 + 1,
         `hsl(${200 + Math.random() * 60}, 100%, ${70 + Math.random() * 30}%)`,
@@ -347,7 +360,7 @@ function updateBarrelRoll() {
       );
     }
   } else {
-    player.barrelRollAngle = 0;
+    p.barrelRollAngle = 0;
   }
 }
 
@@ -431,6 +444,31 @@ for (let i = 0; i < 8; i++) {
   });
 }
 
+// Puffy cloud clusters for visible sky detail
+const puffyClouds = [];
+for (let i = 0; i < 12; i++) {
+  const cx = Math.random() * 2400 - 200;
+  const cy = 20 + Math.random() * (200);
+  const baseW = 140 + Math.random() * 220;
+  const baseH = 50 + Math.random() * 50;
+  const puffCount = 3 + Math.floor(Math.random() * 4);
+  const puffs = [];
+  for (let p = 0; p < puffCount; p++) {
+    puffs.push({
+      ox: (Math.random() - 0.5) * baseW * 0.6,
+      oy: (Math.random() - 0.5) * baseH * 0.3,
+      rw: baseW * (0.25 + Math.random() * 0.35),
+      rh: baseH * (0.35 + Math.random() * 0.35),
+    });
+  }
+  puffyClouds.push({
+    x: cx, y: cy, w: baseW, h: baseH,
+    speed: 0.3 + Math.random() * 0.5,
+    alpha: 0.5 + Math.random() * 0.35,
+    puffs: puffs,
+  });
+}
+
 // ─── Player ─────────────────────────────────────────────────────
 const player = {
   x: 0, y: 0,
@@ -449,13 +487,36 @@ const player = {
   barrelRollTimer: 0,
   barrelRollDir: 0,
   barrelRollAngle: 0,
-  barrelRollCooldown: 0
+  barrelRollCooldown: 0,
+  respawnTimer: 0
+};
+
+// ─── Player 2 ───────────────────────────────────────────────────
+const player2 = {
+  x: 0, y: 0,
+  vx: 0, vy: 0,
+  w: 36, h: 50,
+  hp: 100, maxHp: 100,
+  missiles: 5,
+  shield: 0,
+  fireTimer: 0,
+  fireRate: 8,
+  bankAngle: 0,
+  alive: true,
+  invulnTimer: 0,
+  speed: 5.5,
+  afterburner: 0,
+  barrelRollTimer: 0,
+  barrelRollDir: 0,
+  barrelRollAngle: 0,
+  barrelRollCooldown: 0,
+  respawnTimer: 0
 };
 
 function resetPlayer() {
-  player.x = W / 2;
+  player.x = W / 2 - 25;
   player.y = H - 120;
-  mouseX = W / 2;
+  mouseX = W / 2 - 25;
   mouseY = H - 120;
   player.vx = 0;
   player.vy = 0;
@@ -473,6 +534,58 @@ function resetPlayer() {
   player.barrelRollDir = 0;
   player.barrelRollAngle = 0;
   player.barrelRollCooldown = 0;
+  player.respawnTimer = 0;
+}
+
+function resetPlayer2() {
+  player2.x = W / 2 + 25;
+  player2.y = H - 120;
+  player2.vx = 0;
+  player2.vy = 0;
+  player2.hp = 100;
+  player2.maxHp = 100;
+  player2.missiles = 5;
+  player2.shield = 0;
+  player2.fireTimer = 0;
+  player2.fireRate = 8;
+  player2.bankAngle = 0;
+  player2.alive = true;
+  player2.invulnTimer = 0;
+  player2.afterburner = 0;
+  player2.barrelRollTimer = 0;
+  player2.barrelRollDir = 0;
+  player2.barrelRollAngle = 0;
+  player2.barrelRollCooldown = 0;
+  player2.respawnTimer = 0;
+}
+
+function respawnPlayerObj(p, isP2) {
+  if (isP2) {
+    p.x = W / 2 + 50;
+    p.y = H - 80;
+  } else {
+    p.x = W / 2 - 50;
+    p.y = H - 80;
+    mouseX = p.x;
+    mouseY = p.y;
+  }
+  p.vx = 0;
+  p.vy = 0;
+  p.hp = Math.floor(p.maxHp * 0.5);
+  p.alive = true;
+  p.invulnTimer = 180; // 3 seconds invulnerability
+  p.barrelRollTimer = 0;
+  p.barrelRollDir = 0;
+  p.barrelRollAngle = 0;
+  p.barrelRollCooldown = 0;
+  p.afterburner = 0;
+  p.fireTimer = 0;
+  p.respawnTimer = 0;
+}
+
+// Helper: check if both players are dead
+function bothPlayersDead() {
+  return !player.alive && !player2.alive && player.respawnTimer <= 0 && player2.respawnTimer <= 0;
 }
 
 // ─── Start Game ─────────────────────────────────────────────────
@@ -480,11 +593,14 @@ function startGame() {
   initAudio();
   startEngineHum();
   resetPlayer();
-  // Position jet at bottom center for takeoff
-  player.x = W / 2;
+  resetPlayer2();
+  // Position jets at bottom center for takeoff, side by side
+  player.x = W / 2 - 25;
   player.y = H - 80;
-  mouseX = W / 2;
+  mouseX = W / 2 - 25;
   mouseY = H - 80;
+  player2.x = W / 2 + 25;
+  player2.y = H - 80;
   bullets.length = 0;
   enemyBullets.length = 0;
   enemies.length = 0;
@@ -620,22 +736,22 @@ function spawnEnemy(type) {
 }
 
 // ─── Bullet Spawning ────────────────────────────────────────────
-function firePlayerBullet() {
+function firePlayerBulletFor(p) {
   if (bullets.length >= POOL_MAX_BULLETS) return;
   const spread = rapidFireTimer > 0 ? 3 : 0;
   bullets.push({
-    x: player.x - 8, y: player.y - player.h / 2 - 4,
+    x: p.x - 8, y: p.y - p.h / 2 - 4,
     vx: -spread * 0.3, vy: -10, w: 3, h: 10,
     damage: 1, isMissile: false
   });
   bullets.push({
-    x: player.x + 8, y: player.y - player.h / 2 - 4,
+    x: p.x + 8, y: p.y - p.h / 2 - 4,
     vx: spread * 0.3, vy: -10, w: 3, h: 10,
     damage: 1, isMissile: false
   });
   if (rapidFireTimer > 0) {
     bullets.push({
-      x: player.x, y: player.y - player.h / 2 - 8,
+      x: p.x, y: p.y - p.h / 2 - 8,
       vx: 0, vy: -12, w: 3, h: 10,
       damage: 1, isMissile: false
     });
@@ -644,31 +760,46 @@ function firePlayerBullet() {
 
   // Bullet casing particles
   for (let i = 0; i < 2; i++) {
-    spawnParticle(player.x + (i === 0 ? -10 : 10), player.y - 5,
+    spawnParticle(p.x + (i === 0 ? -10 : 10), p.y - 5,
       (Math.random() - 0.5) * 3 + (i === 0 ? -1 : 1), Math.random() * 2,
       '#c8a84e', 2, 15);
   }
 }
 
-function fireMissile() {
-  if (player.missiles <= 0 || bullets.length >= POOL_MAX_BULLETS) return;
-  player.missiles--;
+function fireMissileFor(p) {
+  if (p.missiles <= 0 || bullets.length >= POOL_MAX_BULLETS) return;
+  p.missiles--;
 
   // Find nearest enemy
   let target = null;
   let minDist = Infinity;
   for (const e of enemies) {
-    const d = Math.hypot(e.x - player.x, e.y - player.y);
+    const d = Math.hypot(e.x - p.x, e.y - p.y);
     if (d < minDist) { minDist = d; target = e; }
   }
 
   bullets.push({
-    x: player.x, y: player.y - player.h / 2,
+    x: p.x, y: p.y - p.h / 2,
     vx: 0, vy: -6, w: 5, h: 16,
     damage: 8, isMissile: true,
     target, turnRate: 0.08, speed: 7
   });
   playMissileSound();
+}
+
+// Helper to find the nearest alive player to an enemy (for AI targeting)
+function nearestAlivePlayer(ex, ey) {
+  let best = null;
+  let bestDist = Infinity;
+  if (player.alive) {
+    const d = Math.hypot(player.x - ex, player.y - ey);
+    if (d < bestDist) { bestDist = d; best = player; }
+  }
+  if (player2.alive) {
+    const d = Math.hypot(player2.x - ex, player2.y - ey);
+    if (d < bestDist) { bestDist = d; best = player2; }
+  }
+  return best || player; // fallback to player1 position even if dead
 }
 
 function fireEnemyBullet(e, angle, speed) {
@@ -790,57 +921,105 @@ function rectCollide(ax, ay, aw, ah, bx, by, bw, bh) {
          ay - ah / 2 < by + bh / 2 && ay + ah / 2 > by - bh / 2;
 }
 
+// ─── Player damage/death helper ─────────────────────────────────
+function damagePlayer(p, isP2, amount) {
+  if (p.shield > 0) {
+    p.shield--;
+    spawnFloatingText(p.x, p.y - 30, 'BLOCKED', '#44ddff', 16);
+    for (let k = 0; k < 8; k++) {
+      spawnParticle(p.x + (Math.random() - 0.5) * 20, p.y + (Math.random() - 0.5) * 20,
+        (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, '#44ddff', 3, 15);
+    }
+    return;
+  }
+  p.hp -= amount;
+  shakeAmount = Math.min(shakeAmount + 5, 15);
+  p.invulnTimer = 15;
+  spawnExplosion(p.x + (Math.random() - 0.5) * 10, p.y, 8, 6);
+  if (p.hp <= 0) {
+    p.alive = false;
+    spawnExplosion(p.x, p.y, 50, 50);
+    p.respawnTimer = 300; // 5 seconds to respawn
+    const label = isP2 ? 'P2' : 'P1';
+    spawnFloatingText(p.x, p.y - 40, label + ' DOWN!', '#ff4444', 24);
+    // Check if both dead -> game over
+    if (bothPlayersDead()) {
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('dogfight_highscore', String(highScore));
+      }
+      setTimeout(() => { gameState = STATE.GAMEOVER; }, 1500);
+    }
+  }
+}
+
 // ─── Takeoff Sequence ───────────────────────────────────────────
 function updateTakeoff() {
   takeoffTimer++;
   gameTime++;
 
-  // Phase 0: Engine spool-up (0–80 frames, ~1.3s) — jet shakes, engines get loud
+  // Phase 0: Engine spool-up (0-80 frames, ~1.3s) -- jet shakes, engines get loud
   if (takeoffPhase === 0) {
     takeoffSpeed = 0;
     // Vibration increases
     shakeAmount = Math.min(takeoffTimer * 0.04, 2.5);
     player.afterburner = takeoffTimer / 80;
+    player2.afterburner = takeoffTimer / 80;
     spawnEngineTrail(player.x - 6, player.y + player.h / 2, player.afterburner);
     spawnEngineTrail(player.x + 6, player.y + player.h / 2, player.afterburner);
+    spawnEngineTrail(player2.x - 6, player2.y + player2.h / 2, player2.afterburner);
+    spawnEngineTrail(player2.x + 6, player2.y + player2.h / 2, player2.afterburner);
     if (takeoffTimer >= 80) {
       takeoffPhase = 1;
       takeoffTimer = 0;
     }
   }
 
-  // Phase 1: Runway roll (0–120 frames, ~2s) — accelerating down the runway
+  // Phase 1: Runway roll (0-120 frames, ~2s) -- accelerating down the runway
   else if (takeoffPhase === 1) {
     const t = takeoffTimer / 120;
     takeoffSpeed = t * t * 18; // quadratic acceleration
     runwayY += takeoffSpeed;
     shakeAmount = 2.5 - t * 1.5; // vibration decreases as speed picks up
     player.afterburner = 0.8 + t * 0.2;
+    player2.afterburner = 0.8 + t * 0.2;
     // Heavy engine trails
     spawnEngineTrail(player.x - 6, player.y + player.h / 2, 1);
     spawnEngineTrail(player.x + 6, player.y + player.h / 2, 1);
+    spawnEngineTrail(player2.x - 6, player2.y + player2.h / 2, 1);
+    spawnEngineTrail(player2.x + 6, player2.y + player2.h / 2, 1);
     if (takeoffTimer >= 120) {
       takeoffPhase = 2;
       takeoffTimer = 0;
     }
   }
 
-  // Phase 2: Rotate — nose pitches up, wheels leave ground (0–40 frames)
+  // Phase 2: Rotate -- nose pitches up, wheels leave ground (0-40 frames)
   else if (takeoffPhase === 2) {
     const t = takeoffTimer / 40;
     takeoffSpeed = 18 + t * 4;
     runwayY += takeoffSpeed;
     player.y -= t * 2.5; // jet lifts off screen center
+    player2.y -= t * 2.5;
     player.afterburner = 1;
+    player2.afterburner = 1;
     shakeAmount = Math.max(0, 1 - t * 2);
     spawnEngineTrail(player.x - 6, player.y + player.h / 2, 1);
     spawnEngineTrail(player.x + 6, player.y + player.h / 2, 1);
+    spawnEngineTrail(player2.x - 6, player2.y + player2.h / 2, 1);
+    spawnEngineTrail(player2.x + 6, player2.y + player2.h / 2, 1);
     // Spray particles from wheels lifting
     if (takeoffTimer < 10) {
       for (let i = 0; i < 2; i++) {
         spawnParticle(
           player.x + (Math.random() - 0.5) * 20,
           player.y + player.h / 2 + 5,
+          (Math.random() - 0.5) * 3, Math.random() * 2 + 1,
+          'rgba(200,200,200,0.5)', 2 + Math.random() * 2, 15
+        );
+        spawnParticle(
+          player2.x + (Math.random() - 0.5) * 20,
+          player2.y + player2.h / 2 + 5,
           (Math.random() - 0.5) * 3, Math.random() * 2 + 1,
           'rgba(200,200,200,0.5)', 2 + Math.random() * 2, 15
         );
@@ -852,7 +1031,7 @@ function updateTakeoff() {
     }
   }
 
-  // Phase 3: Climb — runway shrinks away, transition to gameplay (0–90 frames)
+  // Phase 3: Climb -- runway shrinks away, transition to gameplay (0-90 frames)
   else if (takeoffPhase === 3) {
     const t = takeoffTimer / 90;
     takeoffSpeed = 22 - t * 18; // decelerate to cruise
@@ -860,11 +1039,20 @@ function updateTakeoff() {
     // Jet moves to gameplay position
     const targetY = H - 120;
     player.y += (targetY - player.y) * 0.04;
+    player2.y += (targetY - player2.y) * 0.04;
+    const targetX1 = W / 2 - 25;
+    const targetX2 = W / 2 + 25;
+    player.x += (targetX1 - player.x) * 0.04;
+    player2.x += (targetX2 - player2.x) * 0.04;
     player.afterburner = 1 - t * 0.6;
+    player2.afterburner = 1 - t * 0.6;
     spawnEngineTrail(player.x - 6, player.y + player.h / 2, player.afterburner);
     spawnEngineTrail(player.x + 6, player.y + player.h / 2, player.afterburner);
+    spawnEngineTrail(player2.x - 6, player2.y + player2.h / 2, player2.afterburner);
+    spawnEngineTrail(player2.x + 6, player2.y + player2.h / 2, player2.afterburner);
     if (takeoffTimer >= 90) {
       // Transition to gameplay
+      mouseX = player.x;
       mouseY = player.y;
       gameState = STATE.WAVE_INTRO;
       introTimer = 120;
@@ -1076,7 +1264,7 @@ function drawRunway() {
   ctx.fillStyle = asphaltGrad;
   ctx.fill();
 
-  // Asphalt texture — cracks and wear
+  // Asphalt texture -- cracks and wear
   for (let i = 0; i < 90; i++) {
     const z = i * 65 - (runwayY * 0.5 % 65);
     if (z < 0) continue;
@@ -1337,6 +1525,263 @@ function drawRunway() {
   ctx.restore();
 }
 
+function drawCockpitView() {
+  ctx.save();
+
+  // ── Cockpit shake during spool/roll ──
+  const shk = shakeAmount * 0.5;
+  if (shk > 0.3) {
+    ctx.translate((Math.random() - 0.5) * shk, (Math.random() - 0.5) * shk);
+  }
+
+  // ── Canopy frame — dark silhouette around edges ──
+  // This creates the feeling of sitting inside the jet looking through the canopy
+
+  // Top canopy arch
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(W, 0);
+  ctx.lineTo(W, H * 0.08);
+  ctx.quadraticCurveTo(W * 0.5, H * 0.02, 0, H * 0.08);
+  ctx.closePath();
+  ctx.fill();
+
+  // Left canopy frame
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(W * 0.06, 0);
+  ctx.lineTo(W * 0.04, H * 0.7);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+  ctx.fill();
+
+  // Right canopy frame
+  ctx.beginPath();
+  ctx.moveTo(W, 0);
+  ctx.lineTo(W * 0.94, 0);
+  ctx.lineTo(W * 0.96, H * 0.7);
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── Canopy struts (three thin metal ribs) ──
+  ctx.strokeStyle = 'rgba(40, 40, 40, 0.6)';
+  ctx.lineWidth = 3;
+  // Left strut
+  ctx.beginPath();
+  ctx.moveTo(W * 0.05, H * 0.06);
+  ctx.quadraticCurveTo(W * 0.18, H * 0.04, W * 0.32, H * 0.03);
+  ctx.stroke();
+  // Right strut
+  ctx.beginPath();
+  ctx.moveTo(W * 0.95, H * 0.06);
+  ctx.quadraticCurveTo(W * 0.82, H * 0.04, W * 0.68, H * 0.03);
+  ctx.stroke();
+  // Center bow
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(W * 0.04, H * 0.35);
+  ctx.quadraticCurveTo(W * 0.5, H * 0.02, W * 0.96, H * 0.35);
+  ctx.stroke();
+
+  // ── Dashboard / instrument panel (bottom) ──
+  const dashTop = H * 0.72;
+  const dashGrad = ctx.createLinearGradient(0, dashTop, 0, H);
+  dashGrad.addColorStop(0, '#1c1c1c');
+  dashGrad.addColorStop(0.15, '#222222');
+  dashGrad.addColorStop(0.5, '#191919');
+  dashGrad.addColorStop(1, '#0e0e0e');
+  ctx.fillStyle = dashGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, dashTop + 30);
+  ctx.quadraticCurveTo(W * 0.5, dashTop - 10, W, dashTop + 30);
+  ctx.lineTo(W, H);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+  ctx.fill();
+
+  // Dashboard top edge highlight
+  ctx.strokeStyle = 'rgba(80, 80, 80, 0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, dashTop + 30);
+  ctx.quadraticCurveTo(W * 0.5, dashTop - 10, W, dashTop + 30);
+  ctx.stroke();
+
+  // ── Instrument bezels on dashboard ──
+  // Left MFD (multi-function display)
+  const mfdSize = Math.min(100, W * 0.08);
+  const mfdY = dashTop + 50;
+
+  // Left MFD
+  ctx.fillStyle = '#0a0a0a';
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.fillRect(W * 0.15 - mfdSize / 2, mfdY, mfdSize, mfdSize * 0.8);
+  ctx.strokeRect(W * 0.15 - mfdSize / 2, mfdY, mfdSize, mfdSize * 0.8);
+  // MFD screen glow
+  ctx.fillStyle = 'rgba(0, 80, 0, 0.3)';
+  ctx.fillRect(W * 0.15 - mfdSize / 2 + 4, mfdY + 4, mfdSize - 8, mfdSize * 0.8 - 8);
+  // Attitude lines on MFD
+  ctx.strokeStyle = 'rgba(0, 200, 0, 0.4)';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i < 5; i++) {
+    const ly = mfdY + 8 + i * (mfdSize * 0.8 - 16) / 5;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.15 - mfdSize / 4, ly);
+    ctx.lineTo(W * 0.15 + mfdSize / 4, ly);
+    ctx.stroke();
+  }
+
+  // Right MFD
+  ctx.fillStyle = '#0a0a0a';
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.fillRect(W * 0.85 - mfdSize / 2, mfdY, mfdSize, mfdSize * 0.8);
+  ctx.strokeRect(W * 0.85 - mfdSize / 2, mfdY, mfdSize, mfdSize * 0.8);
+  ctx.fillStyle = 'rgba(0, 80, 0, 0.3)';
+  ctx.fillRect(W * 0.85 - mfdSize / 2 + 4, mfdY + 4, mfdSize - 8, mfdSize * 0.8 - 8);
+
+  // Center console — throttle quadrant area
+  ctx.fillStyle = '#111';
+  ctx.fillRect(W * 0.5 - 35, mfdY + 10, 70, mfdSize * 0.6);
+  ctx.strokeStyle = '#2a2a2a';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(W * 0.5 - 35, mfdY + 10, 70, mfdSize * 0.6);
+
+  // Throttle position indicator (moves with takeoff progress)
+  const throttlePos = takeoffPhase === 0 ? takeoffTimer / 80 :
+                      takeoffPhase >= 1 ? 1 : 0;
+  const throttleY = mfdY + 10 + (mfdSize * 0.6) * (1 - throttlePos);
+  ctx.fillStyle = '#555';
+  ctx.fillRect(W * 0.5 - 8, throttleY, 16, 12);
+  ctx.fillStyle = throttlePos > 0.9 ? '#ff4400' : '#888';
+  ctx.fillRect(W * 0.5 - 6, throttleY + 2, 12, 8);
+  // MIL/AB label
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('MIL', W * 0.5, mfdY + 18);
+  ctx.fillText('AB', W * 0.5, mfdY + 10 + mfdSize * 0.6 - 4);
+
+  // ── Warning lights on glareshield ──
+  const glareY = dashTop + 18;
+  // Master caution (amber, blinks during spool)
+  if (takeoffPhase === 0 && Math.floor(gameTime / 15) % 2 === 0) {
+    ctx.fillStyle = 'rgba(255, 180, 0, 0.8)';
+    ctx.fillRect(W * 0.42, glareY, 32, 12);
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('MSTR', W * 0.42 + 16, glareY + 9);
+  }
+  // Config OK (green once rolling)
+  if (takeoffPhase >= 1) {
+    ctx.fillStyle = 'rgba(0, 200, 0, 0.7)';
+    ctx.fillRect(W * 0.54, glareY, 32, 12);
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('T/O', W * 0.54 + 16, glareY + 9);
+  }
+  // Gear indicator
+  if (takeoffPhase < 3) {
+    ctx.fillStyle = 'rgba(0, 200, 0, 0.6)';
+    ctx.beginPath();
+    ctx.arc(W * 0.38, glareY + 6, 4, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '6px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('GEAR', W * 0.38, glareY + 16);
+  } else {
+    // Gear up — indicator off
+    ctx.fillStyle = 'rgba(80, 80, 80, 0.5)';
+    ctx.beginPath();
+    ctx.arc(W * 0.38, glareY + 6, 4, 0, TAU);
+    ctx.fill();
+  }
+
+  // ── Canopy glass reflections ──
+  // Subtle diagonal light streaks on the canopy
+  ctx.globalAlpha = 0.04 + Math.sin(gameTime * 0.02) * 0.01;
+  const reflGrad = ctx.createLinearGradient(W * 0.2, 0, W * 0.6, H * 0.5);
+  reflGrad.addColorStop(0, 'rgba(255,255,255,0)');
+  reflGrad.addColorStop(0.3, 'rgba(255,255,255,0.5)');
+  reflGrad.addColorStop(0.5, 'rgba(255,255,255,0.8)');
+  reflGrad.addColorStop(0.7, 'rgba(255,255,255,0.5)');
+  reflGrad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = reflGrad;
+  ctx.beginPath();
+  ctx.moveTo(W * 0.1, 0);
+  ctx.lineTo(W * 0.35, 0);
+  ctx.lineTo(W * 0.2, H * 0.5);
+  ctx.lineTo(W * 0.05, H * 0.3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Second reflection (right side, fainter)
+  ctx.globalAlpha = 0.025;
+  ctx.fillStyle = reflGrad;
+  ctx.beginPath();
+  ctx.moveTo(W * 0.6, 0);
+  ctx.lineTo(W * 0.75, 0);
+  ctx.lineTo(W * 0.65, H * 0.35);
+  ctx.lineTo(W * 0.55, H * 0.2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // ── HUD combiner glass (the transparent green-tinted panel) ──
+  ctx.fillStyle = 'rgba(0, 255, 100, 0.02)';
+  ctx.fillRect(W * 0.25, H * 0.05, W * 0.5, H * 0.55);
+  // HUD glass edge
+  ctx.strokeStyle = 'rgba(0, 255, 100, 0.06)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(W * 0.25, H * 0.05, W * 0.5, H * 0.55);
+
+  // ── Side console details (left) ──
+  ctx.fillStyle = '#151515';
+  ctx.fillRect(W * 0.01, H * 0.5, W * 0.035, H * 0.2);
+  // Toggle switches
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = '#444';
+    ctx.fillRect(W * 0.015 + i * 8, H * 0.52, 5, 10);
+    ctx.fillStyle = i < 3 ? '#0a0' : '#a00';
+    ctx.fillRect(W * 0.016 + i * 8, H * 0.52, 3, 4);
+  }
+
+  // ── Side console details (right) ──
+  ctx.fillStyle = '#151515';
+  ctx.fillRect(W * 0.955, H * 0.5, W * 0.035, H * 0.2);
+
+  // ── Nose visible below dashboard (gives depth) ──
+  if (takeoffPhase < 2) {
+    // Slight nose-up visible below dashboard center
+    ctx.fillStyle = '#e81010';
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.ellipse(W * 0.5, dashTop + 25, 60, 8, 0, 0, PI);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // ── G-force / vibration vignette (stronger during high speed) ──
+  const vignetteIntensity = takeoffPhase === 1 ? 0.15 + takeoffSpeed * 0.01 :
+                            takeoffPhase === 2 ? 0.3 :
+                            takeoffPhase === 3 ? 0.3 - (takeoffTimer / 90) * 0.2 : 0.05;
+  const vigGrad = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.9);
+  vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  vigGrad.addColorStop(0.7, 'rgba(0,0,0,0)');
+  vigGrad.addColorStop(1, `rgba(0,0,0,${vignetteIntensity})`);
+  ctx.fillStyle = vigGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.restore();
+}
+
 function drawTakeoffHUD() {
   ctx.save();
   ctx.textAlign = 'center';
@@ -1437,7 +1882,7 @@ function drawTakeoffHUD() {
   ctx.stroke();
 
   // Phase text
-  const phaseLabels = ['ENGINE SPOOL-UP', 'ROLLING', 'ROTATE — PULL UP', 'GEAR UP — AIRBORNE'];
+  const phaseLabels = ['ENGINE SPOOL-UP', 'ROLLING', 'ROTATE \u2014 PULL UP', 'GEAR UP \u2014 AIRBORNE'];
   ctx.fillStyle = takeoffPhase >= 2 ? 'rgba(0,255,150,0.9)' : 'rgba(255,255,255,0.6)';
   ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'center';
@@ -1451,6 +1896,10 @@ function update() {
   gameTime++;
   if (shakeAmount > 0.5) shakeAmount *= shakeDecay;
   else shakeAmount = 0;
+
+  // Drift clouds
+  for (const c of clouds) c.x += c.speed;
+  for (const c of puffyClouds) c.x += c.speed;
 
   // ── Takeoff ──
   if (gameState === STATE.TAKEOFF) {
@@ -1469,19 +1918,19 @@ function update() {
     if (introTimer <= 0) {
       gameState = STATE.PLAYING;
     }
-    // Still let player move during intro
+    // Still let players move during intro
   }
 
-  // ── Player ──
+  // ── Player 1 ──
   inputFrame++;
   if (player.alive) {
-    updateBarrelRoll();
+    updateBarrelRollFor(player);
 
     // Mouse-driven movement: smooth follow cursor
     const dx = mouseX - player.x;
     const dy = mouseY - player.y;
     const dist = Math.hypot(dx, dy);
-    const followSpeed = 0.12; // lerp factor — smooth but responsive
+    const followSpeed = 0.12; // lerp factor -- smooth but responsive
 
     if (dist > 2) {
       player.vx = dx * followSpeed;
@@ -1502,7 +1951,7 @@ function update() {
     const targetBank = -player.vx * 4 * DEG;
     player.bankAngle += (targetBank - player.bankAngle) * 0.15;
 
-    // Afterburner — more intense when moving fast
+    // Afterburner -- more intense when moving fast
     const moveMag = Math.hypot(player.vx, player.vy);
     player.afterburner += ((0.3 + moveMag * 0.08) - player.afterburner) * 0.1;
 
@@ -1510,15 +1959,95 @@ function update() {
     spawnEngineTrail(player.x - 6, player.y + player.h / 2, player.afterburner);
     spawnEngineTrail(player.x + 6, player.y + player.h / 2, player.afterburner);
 
-    // Fire — hold left mouse button to shoot
+    // Fire -- hold left mouse button to shoot
     if (player.fireTimer > 0) player.fireTimer--;
     const rate = rapidFireTimer > 0 ? Math.max(3, player.fireRate - 4) : player.fireRate;
     if (mouseDown && player.fireTimer <= 0) {
-      firePlayerBullet();
+      firePlayerBulletFor(player);
       player.fireTimer = rate;
     }
 
     if (player.invulnTimer > 0) player.invulnTimer--;
+  } else {
+    // P1 respawn timer
+    if (player.respawnTimer > 0) {
+      player.respawnTimer--;
+      if (player.respawnTimer <= 0 && !bothPlayersDead()) {
+        respawnPlayerObj(player, false);
+        spawnFloatingText(player.x, player.y - 30, 'P1 BACK!', '#ff4444', 20);
+      }
+    }
+  }
+
+  // ── Player 2 ──
+  if (player2.alive) {
+    updateBarrelRollFor(player2);
+
+    // WASD movement
+    let p2dx = 0, p2dy = 0;
+    if (keys['KeyW']) p2dy -= 1;
+    if (keys['KeyS']) p2dy += 1;
+    if (keys['KeyA']) p2dx -= 1;
+    if (keys['KeyD']) p2dx += 1;
+
+    // Normalize diagonal
+    const p2mag = Math.hypot(p2dx, p2dy);
+    if (p2mag > 0) {
+      p2dx /= p2mag;
+      p2dy /= p2mag;
+    }
+
+    const p2speed = player2.speed;
+    const targetVx = p2dx * p2speed;
+    const targetVy = p2dy * p2speed;
+
+    // Smooth acceleration
+    player2.vx += (targetVx - player2.vx) * 0.15;
+    player2.vy += (targetVy - player2.vy) * 0.15;
+
+    // Friction when no input
+    if (p2mag === 0) {
+      player2.vx *= 0.9;
+      player2.vy *= 0.9;
+    }
+
+    player2.x += player2.vx;
+    player2.y += player2.vy;
+
+    // Clamp to screen
+    player2.x = Math.max(player2.w, Math.min(W - player2.w, player2.x));
+    player2.y = Math.max(player2.h, Math.min(H - player2.h, player2.y));
+
+    // Bank angle
+    const targetBank2 = -player2.vx * 4 * DEG;
+    player2.bankAngle += (targetBank2 - player2.bankAngle) * 0.15;
+
+    // Afterburner
+    const moveMag2 = Math.hypot(player2.vx, player2.vy);
+    player2.afterburner += ((0.3 + moveMag2 * 0.08) - player2.afterburner) * 0.1;
+
+    // Engine trail
+    spawnEngineTrail(player2.x - 6, player2.y + player2.h / 2, player2.afterburner);
+    spawnEngineTrail(player2.x + 6, player2.y + player2.h / 2, player2.afterburner);
+
+    // Fire -- Space to shoot
+    if (player2.fireTimer > 0) player2.fireTimer--;
+    const rate2 = rapidFireTimer > 0 ? Math.max(3, player2.fireRate - 4) : player2.fireRate;
+    if (keys['Space'] && player2.fireTimer <= 0) {
+      firePlayerBulletFor(player2);
+      player2.fireTimer = rate2;
+    }
+
+    if (player2.invulnTimer > 0) player2.invulnTimer--;
+  } else {
+    // P2 respawn timer
+    if (player2.respawnTimer > 0) {
+      player2.respawnTimer--;
+      if (player2.respawnTimer <= 0 && !bothPlayersDead()) {
+        respawnPlayerObj(player2, true);
+        spawnFloatingText(player2.x, player2.y - 30, 'P2 BACK!', '#ff2d9b', 20);
+      }
+    }
   }
 
   // ── Bullets ──
@@ -1549,15 +2078,17 @@ function update() {
   // ── Enemy Bullets ──
   for (let i = enemyBullets.length - 1; i >= 0; i--) {
     const b = enemyBullets[i];
-    if (b.isHoming && player.alive) {
+    if (b.isHoming) {
       b.life--;
       if (b.life <= 0) {
         spawnExplosion(b.x, b.y, 10, 5);
         enemyBullets.splice(i, 1);
         continue;
       }
-      const dx = player.x - b.x;
-      const dy = player.y - b.y;
+      // Home toward nearest alive player
+      const tgt = nearestAlivePlayer(b.x, b.y);
+      const dx = tgt.x - b.x;
+      const dy = tgt.y - b.y;
       const angle = Math.atan2(dy, dx);
       const curAngle = Math.atan2(b.vy, b.vx);
       let diff = angle - curAngle;
@@ -1581,6 +2112,9 @@ function update() {
     const e = enemies[i];
     e.age++;
 
+    // Find nearest alive player for targeting
+    const tgt = nearestAlivePlayer(e.x, e.y);
+
     // AI per type
     switch (e.type) {
       case 'scout':
@@ -1589,7 +2123,6 @@ function update() {
         e.y += e.vy;
         e.fireTimer--;
         if (e.fireTimer <= 0 && e.y > 0) {
-          const angle = Math.atan2(player.y - e.y, player.x - e.x) - PI / 2;
           fireEnemyBullet(e, 0, 3.5);
           e.fireTimer = e.fireRate;
         }
@@ -1600,9 +2133,9 @@ function update() {
         e.y += e.vy;
         e.fireTimer--;
         if (e.fireTimer <= 0 && e.y > 0) {
-          // Burst fire — aim at player
-          const aimDx = player.x - e.x;
-          const aimDy = player.y - e.y;
+          // Burst fire -- aim at nearest player
+          const aimDx = tgt.x - e.x;
+          const aimDy = tgt.y - e.y;
           const aimAngle = Math.atan2(aimDx, aimDy);
           for (let b = 0; b < 3; b++) {
             setTimeout(() => {
@@ -1621,7 +2154,7 @@ function update() {
         e.fireTimer--;
         if (e.fireTimer <= 0 && e.y > 0) {
           // Area bombs - spread aimed downward
-          const baseAngle = Math.atan2(player.x - e.x, player.y - e.y);
+          const baseAngle = Math.atan2(tgt.x - e.x, tgt.y - e.y);
           for (let a = -2; a <= 2; a++) {
             fireEnemyBullet(e, baseAngle + a * 0.25, 2.5);
           }
@@ -1667,10 +2200,10 @@ function update() {
                 }
               }
               break;
-            case 1: // Track player
-              e.x += (player.x - e.x) * 0.02;
+            case 1: // Track nearest player
+              e.x += (tgt.x - e.x) * 0.02;
               if (e.bossTimer % 8 === 0) {
-                const a = Math.atan2(player.x - e.x, player.y - e.y);
+                const a = Math.atan2(tgt.x - e.x, tgt.y - e.y);
                 fireEnemyBullet(e, a, 5);
               }
               break;
@@ -1767,57 +2300,35 @@ function update() {
     }
   }
 
-  // ── Enemy Bullet-Player Collisions ──
-  if (player.alive && player.invulnTimer <= 0) {
-    for (let i = enemyBullets.length - 1; i >= 0; i--) {
-      const b = enemyBullets[i];
-      if (rectCollide(b.x, b.y, b.w, b.h, player.x, player.y, player.w * 0.6, player.h * 0.6)) {
+  // ── Enemy Bullet-Player Collisions (both players) ──
+  const playersToCheck = [];
+  if (player.alive && player.invulnTimer <= 0) playersToCheck.push({ p: player, isP2: false });
+  if (player2.alive && player2.invulnTimer <= 0) playersToCheck.push({ p: player2, isP2: true });
+
+  for (let i = enemyBullets.length - 1; i >= 0; i--) {
+    const b = enemyBullets[i];
+    let hit = false;
+    for (const { p, isP2 } of playersToCheck) {
+      if (rectCollide(b.x, b.y, b.w, b.h, p.x, p.y, p.w * 0.6, p.h * 0.6)) {
         enemyBullets.splice(i, 1);
-        if (player.shield > 0) {
-          player.shield--;
-          spawnFloatingText(player.x, player.y - 30, 'BLOCKED', '#44ddff', 16);
-          for (let p = 0; p < 8; p++) {
-            spawnParticle(player.x + (Math.random() - 0.5) * 20, player.y + (Math.random() - 0.5) * 20,
-              (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, '#44ddff', 3, 15);
-          }
-        } else {
-          player.hp -= b.isHoming ? 15 : 8;
-          shakeAmount = Math.min(shakeAmount + 5, 15);
-          player.invulnTimer = 15;
-          spawnExplosion(player.x + (Math.random() - 0.5) * 10, player.y, 8, 6);
-          if (player.hp <= 0) {
-            player.alive = false;
-            spawnExplosion(player.x, player.y, 50, 50);
-            if (score > highScore) {
-              highScore = score;
-              localStorage.setItem('dogfight_highscore', String(highScore));
-            }
-            setTimeout(() => { gameState = STATE.GAMEOVER; }, 1500);
-          }
-        }
+        damagePlayer(p, isP2, b.isHoming ? 15 : 8);
+        hit = true;
+        break;
       }
     }
+    if (hit) continue;
   }
 
-  // ── Enemy-Player Collision ──
-  if (player.alive && player.invulnTimer <= 0) {
+  // ── Enemy-Player Collision (both players) ──
+  for (const { p, isP2 } of playersToCheck) {
     for (let i = enemies.length - 1; i >= 0; i--) {
       const e = enemies[i];
-      if (rectCollide(player.x, player.y, player.w * 0.5, player.h * 0.5, e.x, e.y, e.w * 0.5, e.h * 0.5)) {
-        player.hp -= 20;
-        player.invulnTimer = 30;
+      if (rectCollide(p.x, p.y, p.w * 0.5, p.h * 0.5, e.x, e.y, e.w * 0.5, e.h * 0.5)) {
+        damagePlayer(p, isP2, 20);
+        p.invulnTimer = 30;
         e.hp -= 5;
         shakeAmount = 10;
-        spawnExplosion((player.x + e.x) / 2, (player.y + e.y) / 2, 15, 10);
-        if (player.hp <= 0) {
-          player.alive = false;
-          spawnExplosion(player.x, player.y, 50, 50);
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('dogfight_highscore', String(highScore));
-          }
-          setTimeout(() => { gameState = STATE.GAMEOVER; }, 1500);
-        }
+        spawnExplosion((p.x + e.x) / 2, (p.y + e.y) / 2, 15, 10);
         if (e.hp <= 0) {
           spawnExplosion(e.x, e.y, 20, 15);
           totalKills++;
@@ -1828,43 +2339,52 @@ function update() {
     }
   }
 
-  // ── Power-ups ──
+  // ── Power-ups (both players can collect) ──
   for (let i = powerups.length - 1; i >= 0; i--) {
-    const p = powerups[i];
-    p.y += p.vy;
-    p.pulse += 0.08;
-    p.life--;
-    if (p.life <= 0 || p.y > H + 20) {
+    const pw = powerups[i];
+    pw.y += pw.vy;
+    pw.pulse += 0.08;
+    pw.life--;
+    if (pw.life <= 0 || pw.y > H + 20) {
       powerups.splice(i, 1);
       continue;
     }
-    if (player.alive && rectCollide(player.x, player.y, player.w, player.h, p.x, p.y, p.size * 2, p.size * 2)) {
-      playPowerupSound();
-      switch (p.type) {
-        case 'health':
-          player.hp = Math.min(player.maxHp, player.hp + 30);
-          spawnFloatingText(p.x, p.y, '+30 HP', '#44ff44', 18);
-          break;
-        case 'rapidfire':
-          rapidFireTimer = 480;
-          spawnFloatingText(p.x, p.y, 'RAPID FIRE!', '#44aaff', 18);
-          break;
-        case 'missile':
-          player.missiles += 3;
-          spawnFloatingText(p.x, p.y, '+3 MISSILES', '#ff4444', 18);
-          break;
-        case 'shield':
-          player.shield = 3;
-          spawnFloatingText(p.x, p.y, 'SHIELD x3', '#44ddff', 18);
-          break;
-        case 'multiplier':
-          scoreMultiplier = 2;
-          multiplierTimer = 600;
-          spawnFloatingText(p.x, p.y, 'SCORE x2!', '#ddaa00', 18);
-          break;
+    let collected = false;
+    const collectors = [];
+    if (player.alive) collectors.push(player);
+    if (player2.alive) collectors.push(player2);
+    for (const p of collectors) {
+      if (rectCollide(p.x, p.y, p.w, p.h, pw.x, pw.y, pw.size * 2, pw.size * 2)) {
+        playPowerupSound();
+        switch (pw.type) {
+          case 'health':
+            p.hp = Math.min(p.maxHp, p.hp + 30);
+            spawnFloatingText(pw.x, pw.y, '+30 HP', '#44ff44', 18);
+            break;
+          case 'rapidfire':
+            rapidFireTimer = 480;
+            spawnFloatingText(pw.x, pw.y, 'RAPID FIRE!', '#44aaff', 18);
+            break;
+          case 'missile':
+            p.missiles += 3;
+            spawnFloatingText(pw.x, pw.y, '+3 MISSILES', '#ff4444', 18);
+            break;
+          case 'shield':
+            p.shield = 3;
+            spawnFloatingText(pw.x, pw.y, 'SHIELD x3', '#44ddff', 18);
+            break;
+          case 'multiplier':
+            scoreMultiplier = 2;
+            multiplierTimer = 600;
+            spawnFloatingText(pw.x, pw.y, 'SCORE x2!', '#ddaa00', 18);
+            break;
+        }
+        powerups.splice(i, 1);
+        collected = true;
+        break;
       }
-      powerups.splice(i, 1);
     }
+    if (collected) continue;
   }
 
   // ── Particles ──
@@ -1927,7 +2447,7 @@ function update() {
 // ─── Drawing Functions ──────────────────────────────────────────
 
 function drawBackground() {
-  // Daytime sky gradient — bright blue atmosphere
+  // Daytime sky gradient -- bright blue atmosphere
   const grad = ctx.createLinearGradient(0, 0, 0, H);
   grad.addColorStop(0, '#1a6dd4');    // deep blue zenith
   grad.addColorStop(0.25, '#3a8ee6'); // mid sky
@@ -1955,29 +2475,47 @@ function drawBackground() {
   ctx.arc(sunX, sunY, 18, 0, TAU);
   ctx.fill();
 
-  // Clouds — white/grey puffy clouds
+  // Old wispy clouds (background layer)
   for (const c of clouds) {
-    // Cloud shadow
-    ctx.fillStyle = `rgba(140, 170, 200, ${c.alpha * 0.4})`;
-    ctx.beginPath();
-    ctx.ellipse(c.x % (W + 400) + 3, c.y % (H + 200) + 3, c.w / 2, c.h / 2, 0, 0, TAU);
-    ctx.fill();
-    // Cloud body
-    ctx.fillStyle = `rgba(255, 255, 255, ${c.alpha * 0.7})`;
+    ctx.fillStyle = `rgba(255, 255, 255, ${c.alpha * 0.5})`;
     ctx.beginPath();
     ctx.ellipse(c.x % (W + 400), c.y % (H + 200), c.w / 2, c.h / 2, 0, 0, TAU);
     ctx.fill();
-    // Cloud highlight
-    ctx.fillStyle = `rgba(255, 255, 255, ${c.alpha * 0.3})`;
-    ctx.beginPath();
-    ctx.ellipse(c.x % (W + 400) - c.w * 0.15, c.y % (H + 200) - c.h * 0.15, c.w * 0.35, c.h * 0.35, 0, 0, TAU);
-    ctx.fill();
+  }
+
+  // Puffy cumulus clouds
+  for (const c of puffyClouds) {
+    const bx = c.x % (W + 500) - 100;
+    const by = c.y;
+    const a = c.alpha;
+    // Shadow layer (slightly offset down-right)
+    for (const p of c.puffs) {
+      ctx.fillStyle = `rgba(160, 175, 195, ${a * 0.3})`;
+      ctx.beginPath();
+      ctx.ellipse(bx + p.ox + 4, by + p.oy + 3, p.rw / 2, p.rh / 2, 0, 0, TAU);
+      ctx.fill();
+    }
+    // Main white body
+    for (const p of c.puffs) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${a * 0.85})`;
+      ctx.beginPath();
+      ctx.ellipse(bx + p.ox, by + p.oy, p.rw / 2, p.rh / 2, 0, 0, TAU);
+      ctx.fill();
+    }
+    // Highlight (top-left lit by sun)
+    for (const p of c.puffs) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${a * 0.5})`;
+      ctx.beginPath();
+      ctx.ellipse(bx + p.ox - p.rw * 0.12, by + p.oy - p.rh * 0.15, p.rw * 0.35, p.rh * 0.3, 0, 0, TAU);
+      ctx.fill();
+    }
   }
 }
 
-function drawPlayerJet(x, y, bank) {
-  if (!player.alive) return;
-  if (player.invulnTimer > 0 && player.barrelRollTimer <= 0 && Math.floor(gameTime / 3) % 2 === 0) return; // Flash (not during barrel roll)
+// Parameterized jet drawing: colorScheme 1 = P1 red, 2 = P2 pink
+function drawPlayerJetGeneric(x, y, bank, p, colorScheme) {
+  if (!p.alive) return;
+  if (p.invulnTimer > 0 && p.barrelRollTimer <= 0 && Math.floor(gameTime / 3) % 2 === 0) return; // Flash (not during barrel roll)
 
   ctx.save();
   ctx.translate(x, y);
@@ -1985,16 +2523,59 @@ function drawPlayerJet(x, y, bank) {
 
   // Barrel roll visual: simulate 3D spin by oscillating scaleX through cos()
   let rollScaleX;
-  if (player.barrelRollTimer > 0) {
-    rollScaleX = Math.cos(player.barrelRollAngle);
+  if (p.barrelRollTimer > 0) {
+    rollScaleX = Math.cos(p.barrelRollAngle);
   } else {
     rollScaleX = 1 - Math.abs(bank) * 1.5;
   }
   ctx.scale(rollScaleX, 1);
 
+  // Color palette
+  let bodyMain, bodyHighlight, canopyFrame, cockpitFront, cockpitRear, glintFront, glintRear;
+  let wingColor, wingTip, tailColor, nozzle, noseDetail;
+  let shieldColor, abInner, abMid, abOuter;
+
+  if (colorScheme === 2) {
+    // Bright hot pink scheme for P2
+    bodyMain = '#ff2d9b';
+    bodyHighlight = '#ff5fbf';
+    canopyFrame = '#cc1a78';
+    cockpitFront = '#ff8ad4';
+    cockpitRear = '#ff70c8';
+    glintFront = 'rgba(255, 200, 240, 0.7)';
+    glintRear = 'rgba(255, 200, 240, 0.6)';
+    wingColor = '#e0187a';
+    wingTip = '#ffaadd';
+    tailColor = '#e0187a';
+    nozzle = '#aa1060';
+    noseDetail = '#ffaadd';
+    shieldColor = 'rgba(255, 50, 160, ';
+    abInner = '255, 255, 255';
+    abMid = '255, 50, 180';
+    abOuter = '255, 20, 130';
+  } else {
+    // Bright red scheme for P1
+    bodyMain = '#e81010';
+    bodyHighlight = '#ff3030';
+    canopyFrame = '#b80808';
+    cockpitFront = '#ff9090';
+    cockpitRear = '#ff7878';
+    glintFront = 'rgba(255, 230, 230, 0.65)';
+    glintRear = 'rgba(255, 230, 230, 0.55)';
+    wingColor = '#c00a0a';
+    wingTip = '#ffbbbb';
+    tailColor = '#c00a0a';
+    nozzle = '#7a0505';
+    noseDetail = '#ffbbbb';
+    shieldColor = 'rgba(255, 60, 60, ';
+    abInner = '255, 255, 255';
+    abMid = '255, 80, 30';
+    abOuter = '255, 30, 5';
+  }
+
   // Shield glow
-  if (player.shield > 0) {
-    ctx.strokeStyle = `rgba(68, 220, 255, ${0.4 + Math.sin(gameTime * 0.1) * 0.2})`;
+  if (p.shield > 0) {
+    ctx.strokeStyle = shieldColor + `${0.4 + Math.sin(gameTime * 0.1) * 0.2})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.ellipse(0, 0, 28, 30, 0, 0, TAU);
@@ -2002,14 +2583,14 @@ function drawPlayerJet(x, y, bank) {
   }
 
   // Afterburner glow
-  const abIntensity = player.afterburner;
+  const abIntensity = p.afterburner;
   if (abIntensity > 0.2) {
     const flameLen = 12 + abIntensity * 20 + Math.random() * 6;
     // Left engine
     const g1 = ctx.createRadialGradient(-6, 20, 2, -6, 20 + flameLen / 2, flameLen / 2);
-    g1.addColorStop(0, `rgba(255, 255, 255, ${abIntensity * 0.8})`);
-    g1.addColorStop(0.3, `rgba(100, 180, 255, ${abIntensity * 0.6})`);
-    g1.addColorStop(0.7, `rgba(255, 120, 20, ${abIntensity * 0.4})`);
+    g1.addColorStop(0, `rgba(${abInner}, ${abIntensity * 0.8})`);
+    g1.addColorStop(0.3, `rgba(${abMid}, ${abIntensity * 0.6})`);
+    g1.addColorStop(0.7, `rgba(${abOuter}, ${abIntensity * 0.4})`);
     g1.addColorStop(1, 'rgba(255, 60, 0, 0)');
     ctx.fillStyle = g1;
     ctx.beginPath();
@@ -2019,9 +2600,9 @@ function drawPlayerJet(x, y, bank) {
     ctx.fill();
     // Right engine
     const g2 = ctx.createRadialGradient(6, 20, 2, 6, 20 + flameLen / 2, flameLen / 2);
-    g2.addColorStop(0, `rgba(255, 255, 255, ${abIntensity * 0.8})`);
-    g2.addColorStop(0.3, `rgba(100, 180, 255, ${abIntensity * 0.6})`);
-    g2.addColorStop(0.7, `rgba(255, 120, 20, ${abIntensity * 0.4})`);
+    g2.addColorStop(0, `rgba(${abInner}, ${abIntensity * 0.8})`);
+    g2.addColorStop(0.3, `rgba(${abMid}, ${abIntensity * 0.6})`);
+    g2.addColorStop(0.7, `rgba(${abOuter}, ${abIntensity * 0.4})`);
     g2.addColorStop(1, 'rgba(255, 60, 0, 0)');
     ctx.fillStyle = g2;
     ctx.beginPath();
@@ -2031,8 +2612,8 @@ function drawPlayerJet(x, y, bank) {
     ctx.fill();
   }
 
-  // Main body — elongated for tandem two-seater
-  ctx.fillStyle = '#3a6ea8';
+  // Main body -- elongated for tandem two-seater
+  ctx.fillStyle = bodyMain;
   ctx.beginPath();
   ctx.moveTo(0, -26); // Nose (extended forward)
   ctx.lineTo(5, -18);
@@ -2046,8 +2627,8 @@ function drawPlayerJet(x, y, bank) {
   ctx.closePath();
   ctx.fill();
 
-  // Body highlight — center spine
-  ctx.fillStyle = '#5090cc';
+  // Body highlight -- center spine
+  ctx.fillStyle = bodyHighlight;
   ctx.beginPath();
   ctx.moveTo(0, -24);
   ctx.lineTo(3, -16);
@@ -2057,34 +2638,34 @@ function drawPlayerJet(x, y, bank) {
   ctx.closePath();
   ctx.fill();
 
-  // Canopy frame — runs between both seats
-  ctx.fillStyle = '#2a5580';
+  // Canopy frame -- runs between both seats
+  ctx.fillStyle = canopyFrame;
   ctx.fillRect(-0.8, -18, 1.6, 18);
 
   // Front cockpit (pilot)
-  ctx.fillStyle = '#88ccee';
+  ctx.fillStyle = cockpitFront;
   ctx.beginPath();
   ctx.ellipse(0, -15, 3.2, 4.5, 0, 0, TAU);
   ctx.fill();
   // Front glass glint
-  ctx.fillStyle = 'rgba(200, 240, 255, 0.6)';
+  ctx.fillStyle = glintFront;
   ctx.beginPath();
   ctx.ellipse(-1, -16, 1.5, 2.2, -0.2, 0, TAU);
   ctx.fill();
 
   // Rear cockpit (weapons officer)
-  ctx.fillStyle = '#77bbdd';
+  ctx.fillStyle = cockpitRear;
   ctx.beginPath();
   ctx.ellipse(0, -6, 3, 4, 0, 0, TAU);
   ctx.fill();
   // Rear glass glint
-  ctx.fillStyle = 'rgba(200, 240, 255, 0.5)';
+  ctx.fillStyle = glintRear;
   ctx.beginPath();
   ctx.ellipse(-1, -7, 1.3, 2, -0.2, 0, TAU);
   ctx.fill();
 
   // Wings
-  ctx.fillStyle = '#2a5580';
+  ctx.fillStyle = wingColor;
   // Left wing
   ctx.beginPath();
   ctx.moveTo(-7, -2);
@@ -2103,7 +2684,7 @@ function drawPlayerJet(x, y, bank) {
   ctx.fill();
 
   // Wing tips
-  ctx.fillStyle = '#ddeeff';
+  ctx.fillStyle = wingTip;
   ctx.beginPath();
   ctx.moveTo(-22, 8);
   ctx.lineTo(-20, 12);
@@ -2116,7 +2697,7 @@ function drawPlayerJet(x, y, bank) {
   ctx.fill();
 
   // Tail fins
-  ctx.fillStyle = '#2a5580';
+  ctx.fillStyle = tailColor;
   ctx.beginPath();
   ctx.moveTo(-4, 14);
   ctx.lineTo(-12, 20);
@@ -2133,12 +2714,12 @@ function drawPlayerJet(x, y, bank) {
   ctx.fill();
 
   // Engine nozzles
-  ctx.fillStyle = '#1a3050';
+  ctx.fillStyle = nozzle;
   ctx.fillRect(-8, 16, 4, 4);
   ctx.fillRect(4, 16, 4, 4);
 
   // Nose detail
-  ctx.fillStyle = '#ddeeff';
+  ctx.fillStyle = noseDetail;
   ctx.beginPath();
   ctx.moveTo(0, -22);
   ctx.lineTo(1.5, -18);
@@ -2147,6 +2728,15 @@ function drawPlayerJet(x, y, bank) {
   ctx.fill();
 
   ctx.restore();
+}
+
+// Convenience wrappers
+function drawPlayerJet(x, y, bank) {
+  drawPlayerJetGeneric(x, y, bank, player, 1);
+}
+
+function drawPlayer2Jet(x, y, bank) {
+  drawPlayerJetGeneric(x, y, bank, player2, 2);
 }
 
 function drawEnemyJet(e) {
@@ -2666,39 +3256,109 @@ function drawFloatingTexts() {
 }
 
 function drawHUD() {
-  // Health bar
-  const hbW = 200, hbH = 14, hbX = 20, hbY = H - 40;
+  const hbW = 180, hbH = 14;
+
+  // ── P1 Health Bar (left side) ──
+  const hbX1 = 20, hbY = H - 55;
   ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  roundRect(hbX - 2, hbY - 2, hbW + 4, hbH + 4, 4);
+  roundRect(hbX1 - 2, hbY - 18, hbW + 4, hbH + 22, 4);
   ctx.fill();
 
-  const hpRatio = Math.max(0, player.hp / player.maxHp);
-  const hpColor = hpRatio > 0.5 ? '#44ff44' : hpRatio > 0.25 ? '#ffaa00' : '#ff3333';
-  ctx.fillStyle = '#333';
-  roundRect(hbX, hbY, hbW, hbH, 3);
-  ctx.fill();
-  ctx.fillStyle = hpColor;
-  roundRect(hbX, hbY, hbW * hpRatio, hbH, 3);
-  ctx.fill();
-
-  ctx.fillStyle = '#fff';
+  // P1 label
+  ctx.fillStyle = '#ff4444';
   ctx.font = 'bold 11px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText(`HP ${Math.ceil(player.hp)}/${player.maxHp}`, hbX + hbW / 2, hbY + hbH / 2 + 1);
+  ctx.textAlign = 'left';
+  ctx.fillText('P1', hbX1, hbY - 6);
 
-  // Shield indicator
-  if (player.shield > 0) {
-    ctx.fillStyle = '#44ddff';
-    ctx.font = 'bold 13px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText(`SHIELD x${player.shield}`, hbX, hbY - 10);
+  const hpRatio1 = Math.max(0, player.hp / player.maxHp);
+  const hpColor1 = hpRatio1 > 0.5 ? '#44ff44' : hpRatio1 > 0.25 ? '#ffaa00' : '#ff3333';
+  ctx.fillStyle = '#333';
+  roundRect(hbX1, hbY, hbW, hbH, 3);
+  ctx.fill();
+  if (player.alive) {
+    ctx.fillStyle = hpColor1;
+    roundRect(hbX1, hbY, hbW * hpRatio1, hbH, 3);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`HP ${Math.ceil(player.hp)}/${player.maxHp}`, hbX1 + hbW / 2, hbY + hbH / 2 + 1);
+  } else {
+    ctx.fillStyle = '#ff4444';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    if (player.respawnTimer > 0) {
+      const sec = Math.ceil(player.respawnTimer / 60);
+      ctx.fillText(`RESPAWNING... ${sec}s`, hbX1 + hbW / 2, hbY + hbH / 2 + 1);
+    } else {
+      ctx.fillText('DOWN', hbX1 + hbW / 2, hbY + hbH / 2 + 1);
+    }
   }
 
-  // Missiles
+  // P1 shield
+  if (player.shield > 0 && player.alive) {
+    ctx.fillStyle = '#44ddff';
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`SHIELD x${player.shield}`, hbX1, hbY - 20);
+  }
+
+  // P1 missiles
   ctx.fillStyle = '#ff6644';
-  ctx.font = 'bold 14px Arial';
+  ctx.font = 'bold 12px Arial';
   ctx.textAlign = 'left';
-  ctx.fillText(`MISSILES: ${player.missiles}`, hbX, hbY - (player.shield > 0 ? 28 : 12));
+  ctx.fillText(`MSL: ${player.missiles}`, hbX1, hbY + hbH + 16);
+
+  // ── P2 Health Bar (right of P1) ──
+  const hbX2 = hbX1 + hbW + 20;
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  roundRect(hbX2 - 2, hbY - 18, hbW + 4, hbH + 22, 4);
+  ctx.fill();
+
+  // P2 label
+  ctx.fillStyle = '#ff2d9b';
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('P2', hbX2, hbY - 6);
+
+  const hpRatio2 = Math.max(0, player2.hp / player2.maxHp);
+  const hpColor2 = hpRatio2 > 0.5 ? '#44ff44' : hpRatio2 > 0.25 ? '#ffaa00' : '#ff3333';
+  ctx.fillStyle = '#333';
+  roundRect(hbX2, hbY, hbW, hbH, 3);
+  ctx.fill();
+  if (player2.alive) {
+    ctx.fillStyle = hpColor2;
+    roundRect(hbX2, hbY, hbW * hpRatio2, hbH, 3);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`HP ${Math.ceil(player2.hp)}/${player2.maxHp}`, hbX2 + hbW / 2, hbY + hbH / 2 + 1);
+  } else {
+    ctx.fillStyle = '#ff4444';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    if (player2.respawnTimer > 0) {
+      const sec = Math.ceil(player2.respawnTimer / 60);
+      ctx.fillText(`RESPAWNING... ${sec}s`, hbX2 + hbW / 2, hbY + hbH / 2 + 1);
+    } else {
+      ctx.fillText('DOWN', hbX2 + hbW / 2, hbY + hbH / 2 + 1);
+    }
+  }
+
+  // P2 shield
+  if (player2.shield > 0 && player2.alive) {
+    ctx.fillStyle = '#44ddff';
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`SHIELD x${player2.shield}`, hbX2, hbY - 20);
+  }
+
+  // P2 missiles
+  ctx.fillStyle = '#ff6644';
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(`MSL: ${player2.missiles}`, hbX2, hbY + hbH + 16);
 
   // Score
   ctx.fillStyle = '#fff';
@@ -2763,6 +3423,26 @@ function drawHUD() {
     }
   }
 
+  // Respawn floating text
+  if (!player.alive && player.respawnTimer > 0) {
+    const alpha = 0.5 + Math.sin(gameTime * 0.1) * 0.3;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#ff4444';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('P1 RESPAWNING...', W * 0.3, H * 0.5);
+    ctx.globalAlpha = 1;
+  }
+  if (!player2.alive && player2.respawnTimer > 0) {
+    const alpha = 0.5 + Math.sin(gameTime * 0.1) * 0.3;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#ff2d9b';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('P2 RESPAWNING...', W * 0.7, H * 0.5);
+    ctx.globalAlpha = 1;
+  }
+
   // Minimap
   drawMinimap();
 }
@@ -2778,13 +3458,25 @@ function drawMinimap() {
   roundRect(mX, mY, mW, mH, 4);
   ctx.stroke();
 
-  // Player dot
-  const px = mX + (player.x / W) * mW;
-  const py = mY + (player.y / H) * mH;
-  ctx.fillStyle = '#44aaff';
-  ctx.beginPath();
-  ctx.arc(px, py, 2.5, 0, TAU);
-  ctx.fill();
+  // P1 dot (red)
+  if (player.alive) {
+    const px = mX + (player.x / W) * mW;
+    const py = mY + (player.y / H) * mH;
+    ctx.fillStyle = '#ff4444';
+    ctx.beginPath();
+    ctx.arc(px, py, 2.5, 0, TAU);
+    ctx.fill();
+  }
+
+  // P2 dot (pink)
+  if (player2.alive) {
+    const px2 = mX + (player2.x / W) * mW;
+    const py2 = mY + (player2.y / H) * mH;
+    ctx.fillStyle = '#ff2d9b';
+    ctx.beginPath();
+    ctx.arc(px2, py2, 2.5, 0, TAU);
+    ctx.fill();
+  }
 
   // Enemy dots
   for (const e of enemies) {
@@ -2800,11 +3492,11 @@ function drawMinimap() {
 
   // Power-up dots
   for (const p of powerups) {
-    const px2 = mX + (p.x / W) * mW;
-    const py2 = mY + (p.y / H) * mH;
+    const ppx = mX + (p.x / W) * mW;
+    const ppy = mY + (p.y / H) * mH;
     ctx.fillStyle = getPowerupColor(p.type);
     ctx.beginPath();
-    ctx.arc(px2, py2, 1.5, 0, TAU);
+    ctx.arc(ppx, ppy, 1.5, 0, TAU);
     ctx.fill();
   }
 }
@@ -2851,9 +3543,9 @@ function drawTitleScreen() {
     ctx.restore();
   }
 
-  // Title
+  // Title — centered on screen
   ctx.save();
-  const titleY = H * 0.28;
+  const titleY = H * 0.38;
 
   // Glow behind title
   ctx.shadowColor = '#4488ff';
@@ -2871,34 +3563,61 @@ function drawTitleScreen() {
   // Subtitle
   ctx.fillStyle = '#aaccee';
   ctx.font = `${Math.min(16, W * 0.02)}px Arial`;
-  ctx.fillText('A Top-Down Jet Combat Game', W / 2, titleY + Math.min(95, W * 0.1));
+  ctx.fillText('Two-Player Local Co-op Jet Combat', W / 2, titleY + Math.min(95, W * 0.1));
 
   // Click to start (pulsing)
   const pulse = 0.5 + Math.sin(gameTime * 0.06) * 0.5;
   ctx.fillStyle = `rgba(255, 255, 255, ${pulse})`;
   ctx.font = `bold ${Math.min(22, W * 0.03)}px Arial`;
-  ctx.fillText('CLICK TO START', W / 2, H * 0.55);
+  ctx.fillText('CLICK OR PRESS SPACE TO START', W / 2, H * 0.58);
 
-  // Controls
-  const ctrlY = H * 0.65;
+  // Controls - two columns
+  const ctrlY = H * 0.66;
+  const colGap = Math.min(220, W * 0.15);
+  ctx.font = `${Math.min(13, W * 0.016)}px Arial`;
+
+  // P1 controls (left column)
+  ctx.fillStyle = '#ff4444';
+  ctx.font = `bold ${Math.min(14, W * 0.018)}px Arial`;
+  ctx.fillText('P1 CONTROLS', W / 2 - colGap, ctrlY);
   ctx.fillStyle = '#7799bb';
-  ctx.font = `${Math.min(14, W * 0.018)}px Arial`;
-  const controls = [
+  ctx.font = `${Math.min(13, W * 0.016)}px Arial`;
+  const p1Controls = [
     'Mouse: Move',
-    'Left Click (hold): Fire Machine Gun',
-    'Right Click: Fire Missile',
-    'Q / E: Barrel Roll Left / Right',
-    'P: Pause'
+    'Left Click (hold): Fire',
+    'Right Click: Missile',
+    'Q / E: Barrel Roll'
   ];
-  controls.forEach((line, i) => {
-    ctx.fillText(line, W / 2, ctrlY + i * 24);
+  p1Controls.forEach((line, i) => {
+    ctx.fillText(line, W / 2 - colGap, ctrlY + 22 + i * 20);
   });
+
+  // P2 controls (right column)
+  ctx.fillStyle = '#ff2d9b';
+  ctx.font = `bold ${Math.min(14, W * 0.018)}px Arial`;
+  ctx.fillText('P2 CONTROLS', W / 2 + colGap, ctrlY);
+  ctx.fillStyle = '#7799bb';
+  ctx.font = `${Math.min(13, W * 0.016)}px Arial`;
+  const p2Controls = [
+    'WASD: Move',
+    'Space (hold): Fire',
+    'F: Missile',
+    'R / T: Barrel Roll'
+  ];
+  p2Controls.forEach((line, i) => {
+    ctx.fillText(line, W / 2 + colGap, ctrlY + 22 + i * 20);
+  });
+
+  // Shared
+  ctx.fillStyle = '#aaa';
+  ctx.font = `${Math.min(13, W * 0.016)}px Arial`;
+  ctx.fillText('P: Pause', W / 2, ctrlY + 22 + 4 * 20 + 10);
 
   // High score
   if (highScore > 0) {
     ctx.fillStyle = '#ffdd44';
     ctx.font = `bold ${Math.min(18, W * 0.025)}px Arial`;
-    ctx.fillText(`HIGH SCORE: ${highScore.toLocaleString()}`, W / 2, H * 0.88);
+    ctx.fillText(`HIGH SCORE: ${highScore.toLocaleString()}`, W / 2, H * 0.92);
   }
 
   ctx.restore();
@@ -2935,7 +3654,7 @@ function drawGameOverScreen() {
   const pulse = 0.5 + Math.sin(gameTime * 0.06) * 0.5;
   ctx.fillStyle = `rgba(255, 255, 255, ${pulse})`;
   ctx.font = `bold ${Math.min(20, W * 0.028)}px Arial`;
-  ctx.fillText('CLICK TO RETRY', W / 2, H * 0.74);
+  ctx.fillText('CLICK OR PRESS SPACE TO RETRY', W / 2, H * 0.74);
 }
 
 function drawWaveIntro() {
@@ -3010,9 +3729,9 @@ function render() {
 
   if (gameState === STATE.TAKEOFF) {
     drawRunway();
-    drawPlayerJet(player.x, player.y, player.bankAngle);
     drawParticles();
     ctx.restore();
+    drawCockpitView();
     drawTakeoffHUD();
     return;
   }
@@ -3025,6 +3744,7 @@ function render() {
   for (const e of enemies) drawEnemyJet(e);
 
   drawPlayerJet(player.x, player.y, player.bankAngle);
+  drawPlayer2Jet(player2.x, player2.y, player2.bankAngle);
   drawParticles();
   drawExplosionRings();
   drawFloatingTexts();

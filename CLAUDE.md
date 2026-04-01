@@ -167,8 +167,19 @@ Task: [title]
 ---
 
 ## Game controls
+
+### Player 1 (Mouse)
 - Mouse: move jet
 - Left click (hold): machine gun
 - Right click: missile
 - Q/E: barrel roll left/right
+
+### Player 2 (Keyboard)
+- WASD: move jet
+- Space (hold): machine gun
+- F: missile
+- R/T: barrel roll left/right
+
+### Shared
 - P: pause
+- Space or Click: start game / retry
