@@ -38,6 +38,39 @@ let takeoffTimer = 0;
 let takeoffPhase = 0; // 0=spool, 1=roll, 2=rotate, 3=climb
 let takeoffSpeed = 0;
 let runwayY = 0;
+
+// ─── Jet Color Picker ──────────────────────────────────────────
+const JET_COLORS = [
+  { name: 'Red',    body: '#cc2222', highlight: '#ee4444', frame: '#991515', cockpit: '#ff8888', rear: '#ee7777', glintF: 'rgba(255,220,220,0.6)', glintR: 'rgba(255,220,220,0.5)', wing: '#991515', tip: '#ffaaaa', tail: '#991515', nozzle: '#661010', nose: '#ffaaaa', shield: 'rgba(255,80,80,', abI: '255,255,255', abM: '255,100,50', abO: '255,40,10', swatch: '#cc2222' },
+  { name: 'Blue',   body: '#3a6ea8', highlight: '#5090cc', frame: '#2a5580', cockpit: '#88ccee', rear: '#77bbdd', glintF: 'rgba(200,240,255,0.6)', glintR: 'rgba(200,240,255,0.5)', wing: '#2a5580', tip: '#ddeeff', tail: '#2a5580', nozzle: '#1a3050', nose: '#ddeeff', shield: 'rgba(68,220,255,', abI: '255,255,255', abM: '100,180,255', abO: '255,120,20', swatch: '#3a6ea8' },
+  { name: 'Green',  body: '#228833', highlight: '#44aa55', frame: '#186628', cockpit: '#88ee99', rear: '#77dd88', glintF: 'rgba(220,255,220,0.6)', glintR: 'rgba(220,255,220,0.5)', wing: '#186628', tip: '#aaffbb', tail: '#186628', nozzle: '#104418', nose: '#aaffbb', shield: 'rgba(80,255,120,', abI: '255,255,255', abM: '100,255,100', abO: '40,255,40', swatch: '#228833' },
+  { name: 'Gold',   body: '#aa7711', highlight: '#cc9933', frame: '#886010', cockpit: '#eebb55', rear: '#ddaa44', glintF: 'rgba(255,240,200,0.6)', glintR: 'rgba(255,240,200,0.5)', wing: '#886010', tip: '#ffddaa', tail: '#886010', nozzle: '#554008', nose: '#ffddaa', shield: 'rgba(255,200,50,', abI: '255,255,255', abM: '255,200,50', abO: '255,150,10', swatch: '#cc9922' },
+  { name: 'Pink',   body: '#ff2d9b', highlight: '#ff5fbf', frame: '#cc1a78', cockpit: '#ff8ad4', rear: '#ff70c8', glintF: 'rgba(255,200,240,0.7)', glintR: 'rgba(255,200,240,0.6)', wing: '#e0187a', tip: '#ffaadd', tail: '#e0187a', nozzle: '#aa1060', nose: '#ffaadd', shield: 'rgba(255,50,160,', abI: '255,255,255', abM: '255,50,180', abO: '255,20,130', swatch: '#ff2d9b' },
+  { name: 'Purple', body: '#7733bb', highlight: '#9955dd', frame: '#552288', cockpit: '#bb88ee', rear: '#aa77dd', glintF: 'rgba(230,210,255,0.6)', glintR: 'rgba(230,210,255,0.5)', wing: '#552288', tip: '#ddbbff', tail: '#552288', nozzle: '#331566', nose: '#ddbbff', shield: 'rgba(150,80,255,', abI: '255,255,255', abM: '150,80,255', abO: '100,30,200', swatch: '#7733bb' },
+  { name: 'White',  body: '#cccccc', highlight: '#eeeeee', frame: '#999999', cockpit: '#ffffff', rear: '#eeeeff', glintF: 'rgba(255,255,255,0.7)', glintR: 'rgba(255,255,255,0.6)', wing: '#aaaaaa', tip: '#ffffff', tail: '#aaaaaa', nozzle: '#666666', nose: '#ffffff', shield: 'rgba(220,220,255,', abI: '255,255,255', abM: '200,200,255', abO: '150,150,255', swatch: '#dddddd' },
+  { name: 'Black',  body: '#222222', highlight: '#444444', frame: '#111111', cockpit: '#555555', rear: '#444444', glintF: 'rgba(150,150,150,0.5)', glintR: 'rgba(150,150,150,0.4)', wing: '#1a1a1a', tip: '#666666', tail: '#1a1a1a', nozzle: '#000000', nose: '#555555', shield: 'rgba(100,100,100,', abI: '255,255,255', abM: '150,150,200', abO: '100,100,180', swatch: '#333333' },
+];
+let p1ColorIndex = 0; // Red
+let p2ColorIndex = 4; // Pink
+
+// Color picker hit areas (set during drawTitleScreen)
+let colorPickerAreas = [];
+
+// ─── Jet Type Selection ────────────────────────────────────────
+const JET_TYPES = [
+  { name: 'F-14 Tomcat', desc: 'Balanced swept-wing fighter', speed: 5.5, maxHp: 100, fireRate: 8, missiles: 5, w: 36, h: 50, twoSeat: true, drawFn: 'drawJetF14' },
+  { name: 'F-22 Raptor', desc: 'Stealth fighter, fast & agile', speed: 7, maxHp: 80, fireRate: 7, missiles: 4, w: 36, h: 48, twoSeat: false, drawFn: 'drawJetF22' },
+  { name: 'F-35 Lightning', desc: 'Strike fighter, high firepower', speed: 5, maxHp: 100, fireRate: 5, missiles: 8, w: 38, h: 48, twoSeat: false, drawFn: 'drawJetF35' },
+  { name: 'Su-57 Felon', desc: 'Heavy stealth fighter, tank', speed: 5, maxHp: 140, fireRate: 8, missiles: 6, w: 38, h: 50, twoSeat: true, drawFn: 'drawJetSu57' },
+  { name: 'A-10 Warthog', desc: 'Slow but devastating firepower', speed: 4, maxHp: 160, fireRate: 3, missiles: 3, w: 40, h: 48, twoSeat: false, drawFn: 'drawJetA10' },
+  { name: 'SR-71 Blackbird', desc: 'Fastest jet, fragile recon', speed: 9, maxHp: 60, fireRate: 10, missiles: 2, w: 32, h: 52, twoSeat: false, drawFn: 'drawJetSR71' },
+];
+let p1JetIndex = 0;
+let p2JetIndex = 0;
+
+// Jet picker hit areas (set during drawTitleScreen)
+let jetPickerAreas = [];
+
 let score = 0;
 let highScore = parseInt(localStorage.getItem('dogfight_highscore') || '0');
 let wave = 1;
@@ -55,6 +88,16 @@ let shakeDecay = 0.9;
 let introTimer = 0;
 let bossWarningTimer = 0;
 let gameTime = 0;
+
+// ─── Day/Night Cycle ───────────────────────────────────────────
+let roundTimer = 1200; // 20 seconds at 60fps
+let isNightMode = false;
+let nightBlend = 0; // 0 = full day, 1 = full night (lerps over ~60 frames)
+let nightAnnouncementTimer = 0; // for "NIGHT FALLS..." / "DAWN BREAKS..." text
+let nightAnnouncementText = '';
+let nightAnnouncementColor = '#44ff44';
+let greenLightningTimer = 0; // random green lightning flashes
+let greenLightningAlpha = 0;
 let dt = 0;
 let lastTime = 0;
 let paused = false;
@@ -84,7 +127,35 @@ canvas.addEventListener('mousemove', e => {
 });
 canvas.addEventListener('mousedown', e => {
   if (e.button === 0) { // left click
-    if (gameState === STATE.TITLE || gameState === STATE.GAMEOVER) {
+    if (gameState === STATE.TITLE) {
+      // Check if clicking a color swatch
+      let clickedUI = false;
+      for (const area of colorPickerAreas) {
+        if (e.clientX >= area.x && e.clientX <= area.x + area.w &&
+            e.clientY >= area.y && e.clientY <= area.y + area.h) {
+          if (area.player === 1) p1ColorIndex = area.colorIndex;
+          else p2ColorIndex = area.colorIndex;
+          clickedUI = true;
+          break;
+        }
+      }
+      // Check if clicking a jet picker area
+      if (!clickedUI) {
+        for (const area of jetPickerAreas) {
+          if (e.clientX >= area.x && e.clientX <= area.x + area.w &&
+              e.clientY >= area.y && e.clientY <= area.y + area.h) {
+            if (area.player === 1) p1JetIndex = area.jetIndex;
+            else p2JetIndex = area.jetIndex;
+            clickedUI = true;
+            break;
+          }
+        }
+      }
+      if (!clickedUI) {
+        startGame();
+      }
+      mouseDown = false;
+    } else if (gameState === STATE.GAMEOVER) {
       startGame();
       mouseDown = false;
     } else {
@@ -305,6 +376,90 @@ function playBossWarning() {
   }
 }
 
+function playZombieDeathSound() {
+  if (!audioCtx) return;
+  const dur = 0.35;
+  const bufSize = audioCtx.sampleRate * dur;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) {
+    d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.25));
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  const gain = audioCtx.createGain();
+  gain.gain.value = 0.08;
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(300, audioCtx.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + dur);
+  filter.Q.value = 5;
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
+  src.start();
+  // Add eerie tone
+  const osc = audioCtx.createOscillator();
+  const og = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + dur);
+  og.gain.setValueAtTime(0.06, audioCtx.currentTime);
+  og.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(og);
+  og.connect(masterGain);
+  osc.start();
+  osc.stop(audioCtx.currentTime + dur);
+}
+
+function playNightTransitionSound() {
+  if (!audioCtx) return;
+  // Eerie descending tone
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 1.5);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 1.5);
+  // Eerie chorus
+  const osc2 = audioCtx.createOscillator();
+  const g2 = audioCtx.createGain();
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(150, audioCtx.currentTime);
+  osc2.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 2);
+  g2.gain.setValueAtTime(0.05, audioCtx.currentTime);
+  g2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
+  osc2.connect(g2);
+  g2.connect(masterGain);
+  osc2.start();
+  osc2.stop(audioCtx.currentTime + 2);
+}
+
+function playDawnTransitionSound() {
+  if (!audioCtx) return;
+  // Rising hopeful tone
+  const notes = [262, 330, 392, 523];
+  notes.forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    const t = audioCtx.currentTime + i * 0.15;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(t);
+    osc.stop(t + 0.4);
+  });
+}
+
 // Engine hum (looping)
 let engineOsc = null;
 function startEngineHum() {
@@ -514,18 +669,22 @@ const player2 = {
 };
 
 function resetPlayer() {
+  const jet = JET_TYPES[p1JetIndex];
   player.x = W / 2 - 25;
   player.y = H - 120;
   mouseX = W / 2 - 25;
   mouseY = H - 120;
   player.vx = 0;
   player.vy = 0;
-  player.hp = 100;
-  player.maxHp = 100;
-  player.missiles = 5;
+  player.hp = jet.maxHp;
+  player.maxHp = jet.maxHp;
+  player.missiles = jet.missiles;
   player.shield = 0;
   player.fireTimer = 0;
-  player.fireRate = 8;
+  player.fireRate = jet.fireRate;
+  player.speed = jet.speed;
+  player.w = jet.w;
+  player.h = jet.h;
   player.bankAngle = 0;
   player.alive = true;
   player.invulnTimer = 0;
@@ -538,16 +697,20 @@ function resetPlayer() {
 }
 
 function resetPlayer2() {
+  const jet = JET_TYPES[p2JetIndex];
   player2.x = W / 2 + 25;
   player2.y = H - 120;
   player2.vx = 0;
   player2.vy = 0;
-  player2.hp = 100;
-  player2.maxHp = 100;
-  player2.missiles = 5;
+  player2.hp = jet.maxHp;
+  player2.maxHp = jet.maxHp;
+  player2.missiles = jet.missiles;
   player2.shield = 0;
   player2.fireTimer = 0;
-  player2.fireRate = 8;
+  player2.fireRate = jet.fireRate;
+  player2.speed = jet.speed;
+  player2.w = jet.w;
+  player2.h = jet.h;
   player2.bankAngle = 0;
   player2.alive = true;
   player2.invulnTimer = 0;
@@ -625,6 +788,12 @@ function startGame() {
   takeoffPhase = 0;
   takeoffSpeed = 0;
   runwayY = 0;
+  roundTimer = 1200;
+  isNightMode = false;
+  nightBlend = 0;
+  nightAnnouncementTimer = 0;
+  greenLightningTimer = 0;
+  greenLightningAlpha = 0;
   gameState = STATE.TAKEOFF;
   playTakeoffSound();
 }
@@ -719,6 +888,31 @@ function spawnEnemy(type) {
       e.vy = 2 + Math.random() * 1;
       e.fireRate = 70;
       e.scoreValue = 500;
+      break;
+    case 'zombie':
+      e.w = 28; e.h = 34;
+      e.hp = e.maxHp = 3 + Math.floor(wave * 0.3);
+      e.vy = 1.5 + Math.random() * 1;
+      e.fireRate = 9999; // zombies don't shoot
+      e.scoreValue = 150;
+      e.wobblePhase = Math.random() * TAU;
+      // Spawn from top, left, or right edges
+      const edge = Math.random();
+      if (edge < 0.5) {
+        // top
+        e.x = 60 + Math.random() * (W - 120);
+        e.y = -60;
+      } else if (edge < 0.75) {
+        // left
+        e.x = -40;
+        e.y = 60 + Math.random() * (H * 0.5);
+        e.vx = 1.5 + Math.random() * 1;
+      } else {
+        // right
+        e.x = W + 40;
+        e.y = 60 + Math.random() * (H * 0.5);
+        e.vx = -(1.5 + Math.random() * 1);
+      }
       break;
     case 'boss':
       e.w = 80; e.h = 90;
@@ -870,10 +1064,47 @@ function spawnExplosion(x, y, size, count) {
   }
 }
 
+function spawnGreenExplosion(x, y, size, count) {
+  playZombieDeathSound();
+  shakeAmount = Math.min(shakeAmount + size * 0.2, 15);
+
+  // Green shockwave ring
+  explosions.push({ x, y, radius: 0, maxRadius: size * 1.5, alpha: 0.6, life: 18, maxLife: 18 });
+
+  count = count || 15;
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * TAU;
+    const speed = 1 + Math.random() * (size * 0.12);
+    const colors = ['#44ff44', '#22cc22', '#66ff66', '#00ff88', '#33dd33', '#aaffaa'];
+    spawnParticle(x, y,
+      Math.cos(angle) * speed, Math.sin(angle) * speed,
+      colors[Math.floor(Math.random() * colors.length)],
+      2 + Math.random() * (size * 0.08),
+      18 + Math.random() * 25
+    );
+  }
+  // Green smoke
+  for (let i = 0; i < Math.floor(count * 0.4); i++) {
+    const angle = Math.random() * TAU;
+    const speed = 0.3 + Math.random() * 1;
+    spawnParticle(x, y,
+      Math.cos(angle) * speed, Math.sin(angle) * speed - 0.3,
+      '#225522', 3 + Math.random() * 5, 35 + Math.random() * 35);
+  }
+}
+
 function spawnEngineTrail(x, y, intensity) {
   const count = intensity > 0.5 ? 2 : 1;
   for (let i = 0; i < count; i++) {
-    const colors = intensity > 0.7 ? ['#44aaff', '#66ccff', '#ffffff'] : ['#ff6600', '#ff4400', '#ffaa22'];
+    let colors;
+    if (intensity > 0.7) {
+      colors = ['#44aaff', '#66ccff', '#ffffff'];
+    } else if (isNightMode && nightBlend > 0.5) {
+      // Slightly blue/white engine trails at night
+      colors = ['#6688ff', '#88aaff', '#aaccff'];
+    } else {
+      colors = ['#ff6600', '#ff4400', '#ffaa22'];
+    }
     spawnParticle(
       x + (Math.random() - 0.5) * 6,
       y + Math.random() * 4,
@@ -1917,8 +2148,97 @@ function update() {
     introTimer--;
     if (introTimer <= 0) {
       gameState = STATE.PLAYING;
+      if (!isNightMode) roundTimer = 1200; // reset round timer when day wave starts
     }
     // Still let players move during intro
+  }
+
+  // ── Day/Night round timer ──
+  if (gameState === STATE.PLAYING) {
+    roundTimer--;
+
+    // Night blend lerp (smooth transition over ~60 frames)
+    const targetBlend = isNightMode ? 1 : 0;
+    nightBlend += (targetBlend - nightBlend) * 0.04;
+    if (Math.abs(nightBlend - targetBlend) < 0.005) nightBlend = targetBlend;
+
+    // Green lightning during night
+    if (isNightMode) {
+      greenLightningTimer--;
+      if (greenLightningTimer <= 0) {
+        greenLightningAlpha = 0.15 + Math.random() * 0.1;
+        greenLightningTimer = 120 + Math.floor(Math.random() * 180);
+      }
+      if (greenLightningAlpha > 0) {
+        greenLightningAlpha *= 0.85;
+        if (greenLightningAlpha < 0.01) greenLightningAlpha = 0;
+      }
+    } else {
+      greenLightningAlpha = 0;
+    }
+
+    // Night announcement timer
+    if (nightAnnouncementTimer > 0) nightAnnouncementTimer--;
+
+    if (roundTimer <= 0) {
+      if (!isNightMode) {
+        // ── Day ends -> Night begins ──
+        // Don't enter night during boss waves
+        if (wave % 5 === 0) {
+          // Boss wave: just restart the timer, no night mode
+          roundTimer = 1200;
+        } else {
+          // Kill remaining regular enemies (they flee/despawn)
+          for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
+            if (e.type !== 'boss') {
+              spawnExplosion(e.x, e.y, 10, 8);
+              enemies.splice(i, 1);
+            }
+          }
+          isNightMode = true;
+          roundTimer = 1200;
+          waveEnemiesLeft = 0; // stop normal wave spawning
+          nightAnnouncementTimer = 120;
+          nightAnnouncementText = 'NIGHT FALLS...';
+          nightAnnouncementColor = '#44ff44';
+          shakeAmount = 8;
+          playNightTransitionSound();
+        }
+      } else {
+        // ── Night ends -> Dawn ──
+        // Kill remaining zombie enemies
+        for (let i = enemies.length - 1; i >= 0; i--) {
+          if (enemies[i].type === 'zombie') {
+            spawnGreenExplosion(enemies[i].x, enemies[i].y, 10, 8);
+            enemies.splice(i, 1);
+          }
+        }
+        isNightMode = false;
+        roundTimer = 1200;
+        nightAnnouncementTimer = 120;
+        nightAnnouncementText = 'DAWN BREAKS...';
+        nightAnnouncementColor = '#ffdd44';
+        playDawnTransitionSound();
+        // Advance to next wave
+        startWave(wave + 1);
+      }
+    }
+
+    // ── Zombie spawning during night ──
+    if (isNightMode && wave % 5 !== 0) {
+      // Spawn rate ramps from 1 every 40 frames to 1 every 15 frames
+      const nightProgress = 1 - (roundTimer / 1200); // 0 -> 1 over 20 seconds
+      const spawnInterval = Math.floor(40 - nightProgress * 25); // 40 -> 15
+      if (gameTime % spawnInterval === 0) {
+        spawnEnemy('zombie');
+      }
+    }
+  } else {
+    // Still lerp nightBlend during non-PLAYING states
+    const targetBlend = isNightMode ? 1 : 0;
+    nightBlend += (targetBlend - nightBlend) * 0.04;
+    if (Math.abs(nightBlend - targetBlend) < 0.005) nightBlend = targetBlend;
   }
 
   // ── Player 1 ──
@@ -1974,7 +2294,7 @@ function update() {
       player.respawnTimer--;
       if (player.respawnTimer <= 0 && !bothPlayersDead()) {
         respawnPlayerObj(player, false);
-        spawnFloatingText(player.x, player.y - 30, 'P1 BACK!', '#ff4444', 20);
+        spawnFloatingText(player.x, player.y - 30, 'P1 BACK!', JET_COLORS[p1ColorIndex].swatch, 20);
       }
     }
   }
@@ -2045,7 +2365,7 @@ function update() {
       player2.respawnTimer--;
       if (player2.respawnTimer <= 0 && !bothPlayersDead()) {
         respawnPlayerObj(player2, true);
-        spawnFloatingText(player2.x, player2.y - 30, 'P2 BACK!', '#ff2d9b', 20);
+        spawnFloatingText(player2.x, player2.y - 30, 'P2 BACK!', JET_COLORS[p2ColorIndex].swatch, 20);
       }
     }
   }
@@ -2181,6 +2501,40 @@ function update() {
         break;
       }
 
+      case 'zombie': {
+        // Relentless homing toward nearest player
+        const zdx = tgt.x - e.x;
+        const zdy = tgt.y - e.y;
+        const zdist = Math.hypot(zdx, zdy) || 1;
+        // Adjust velocity toward player
+        e.vx += (zdx / zdist) * 0.08;
+        e.vy += (zdy / zdist) * 0.08;
+        // Cap speed
+        const zspeed = Math.hypot(e.vx, e.vy);
+        const zmaxSpeed = 2.5;
+        if (zspeed > zmaxSpeed) {
+          e.vx = (e.vx / zspeed) * zmaxSpeed;
+          e.vy = (e.vy / zspeed) * zmaxSpeed;
+        }
+        // Wobble animation
+        e.wobblePhase = (e.wobblePhase || 0) + 0.1;
+        e.x += e.vx + Math.sin(e.wobblePhase) * 0.8;
+        e.y += e.vy;
+        // Green smoke trail
+        if (gameTime % 3 === 0) {
+          spawnParticle(
+            e.x + (Math.random() - 0.5) * 10,
+            e.y + e.h / 2,
+            (Math.random() - 0.5) * 0.5,
+            1 + Math.random(),
+            Math.random() > 0.5 ? '#44ff44' : '#22aa22',
+            2 + Math.random() * 3,
+            15 + Math.random() * 10
+          );
+        }
+        break;
+      }
+
       case 'boss': {
         // Move to target Y
         if (e.y < e.targetY) {
@@ -2236,11 +2590,13 @@ function update() {
       }
     }
 
-    // Clamp X
-    e.x = Math.max(e.w / 2, Math.min(W - e.w / 2, e.x));
+    // Clamp X (not for zombies — they enter from sides)
+    if (e.type !== 'zombie') {
+      e.x = Math.max(e.w / 2, Math.min(W - e.w / 2, e.x));
+    }
 
-    // Engine trails for non-boss
-    if (e.type !== 'boss' && gameTime % 3 === 0) {
+    // Engine trails for non-boss, non-zombie (zombies have green smoke)
+    if (e.type !== 'boss' && e.type !== 'zombie' && gameTime % 3 === 0) {
       spawnEngineTrail(e.x, e.y + e.h / 2, 0.3);
     }
 
@@ -2250,8 +2606,8 @@ function update() {
       spawnSmokeTrail(e.x + (Math.random() - 0.5) * e.w * 0.5, e.y);
     }
 
-    // Remove if offscreen
-    if (e.y > H + 100) {
+    // Remove if offscreen (zombies can come from sides, use wider bounds)
+    if (e.y > H + 100 || e.y < -200 || e.x < -200 || e.x > W + 200) {
       enemies.splice(i, 1);
     }
   }
@@ -2285,13 +2641,17 @@ function update() {
           spawnFloatingText(e.x, e.y, `+${pts}`, '#fff', 16);
 
           const explosionSize = e.type === 'boss' ? 60 : e.type === 'bomber' ? 35 : 20;
-          spawnExplosion(e.x, e.y, explosionSize, e.type === 'boss' ? 60 : 25);
+          if (e.type === 'zombie') {
+            spawnGreenExplosion(e.x, e.y, explosionSize, 20);
+          } else {
+            spawnExplosion(e.x, e.y, explosionSize, e.type === 'boss' ? 60 : 25);
+          }
           maybeDropPowerup(e.x, e.y);
 
           enemies.splice(ei, 1);
 
-          // Check wave clear
-          if (enemies.length === 0 && waveEnemiesLeft <= 0) {
+          // Check wave clear (only if not night mode — night has its own timer)
+          if (!isNightMode && enemies.length === 0 && waveEnemiesLeft <= 0) {
             waveTimer = 120; // Calm before next wave
           }
         }
@@ -2324,13 +2684,22 @@ function update() {
     for (let i = enemies.length - 1; i >= 0; i--) {
       const e = enemies[i];
       if (rectCollide(p.x, p.y, p.w * 0.5, p.h * 0.5, e.x, e.y, e.w * 0.5, e.h * 0.5)) {
-        damagePlayer(p, isP2, 20);
+        const ramDmg = e.type === 'zombie' ? 25 : 20; // zombies hit harder on ram
+        damagePlayer(p, isP2, ramDmg);
         p.invulnTimer = 30;
-        e.hp -= 5;
+        e.hp -= (e.type === 'zombie' ? e.hp : 5); // zombies die on ram
         shakeAmount = 10;
-        spawnExplosion((p.x + e.x) / 2, (p.y + e.y) / 2, 15, 10);
+        if (e.type === 'zombie') {
+          spawnGreenExplosion((p.x + e.x) / 2, (p.y + e.y) / 2, 15, 10);
+        } else {
+          spawnExplosion((p.x + e.x) / 2, (p.y + e.y) / 2, 15, 10);
+        }
         if (e.hp <= 0) {
-          spawnExplosion(e.x, e.y, 20, 15);
+          if (e.type === 'zombie') {
+            spawnGreenExplosion(e.x, e.y, 20, 15);
+          } else {
+            spawnExplosion(e.x, e.y, 20, 15);
+          }
           totalKills++;
           score += e.scoreValue;
           enemies.splice(i, 1);
@@ -2424,8 +2793,8 @@ function update() {
     }
   }
 
-  // ── Wave completion ──
-  if (gameState === STATE.PLAYING && enemies.length === 0 && waveEnemiesLeft <= 0 && waveTimer > 0) {
+  // ── Wave completion (day mode only — night mode uses roundTimer) ──
+  if (gameState === STATE.PLAYING && !isNightMode && enemies.length === 0 && waveEnemiesLeft <= 0 && waveTimer > 0) {
     waveTimer--;
     if (waveTimer <= 0) {
       startWave(wave + 1);
@@ -2446,71 +2815,851 @@ function update() {
 
 // ─── Drawing Functions ──────────────────────────────────────────
 
+function lerpColor(r1,g1,b1, r2,g2,b2, t) {
+  return [
+    Math.round(r1 + (r2 - r1) * t),
+    Math.round(g1 + (g2 - g1) * t),
+    Math.round(b1 + (b2 - b1) * t)
+  ];
+}
+
+function rgbStr(r,g,b) { return `rgb(${r},${g},${b})`; }
+
 function drawBackground() {
-  // Daytime sky gradient -- bright blue atmosphere
+  const nb = nightBlend; // 0 = day, 1 = night
+
+  // Sky gradient colors: lerp between day and night
+  // Day:   #1a6dd4 -> #3a8ee6 -> #62aaf0 -> #8ec5f6 -> #c4dff7
+  // Night: #050a18 -> #0a1228 -> #101830 -> #141e38 -> #1a2440
+  const skyStops = [
+    lerpColor(0x1a,0x6d,0xd4, 0x05,0x0a,0x18, nb),
+    lerpColor(0x3a,0x8e,0xe6, 0x0a,0x12,0x28, nb),
+    lerpColor(0x62,0xaa,0xf0, 0x10,0x18,0x30, nb),
+    lerpColor(0x8e,0xc5,0xf6, 0x14,0x1e,0x38, nb),
+    lerpColor(0xc4,0xdf,0xf7, 0x1a,0x24,0x40, nb),
+  ];
+
   const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, '#1a6dd4');    // deep blue zenith
-  grad.addColorStop(0.25, '#3a8ee6'); // mid sky
-  grad.addColorStop(0.5, '#62aaf0');  // lighter blue
-  grad.addColorStop(0.75, '#8ec5f6'); // pale blue near horizon
-  grad.addColorStop(1, '#c4dff7');    // hazy horizon
+  grad.addColorStop(0, rgbStr(...skyStops[0]));
+  grad.addColorStop(0.25, rgbStr(...skyStops[1]));
+  grad.addColorStop(0.5, rgbStr(...skyStops[2]));
+  grad.addColorStop(0.75, rgbStr(...skyStops[3]));
+  grad.addColorStop(1, rgbStr(...skyStops[4]));
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // Sun glow (upper right area)
+  // Stars (only visible at night)
+  if (nb > 0.1) {
+    const starAlpha = Math.max(0, (nb - 0.1) / 0.9);
+    for (const s of stars) {
+      const twinkle = 0.5 + Math.sin(s.twinkle) * 0.5;
+      ctx.fillStyle = `rgba(255, 255, 255, ${starAlpha * s.brightness * twinkle})`;
+      ctx.beginPath();
+      ctx.arc(s.x % W, s.y % H, s.size * 0.8, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  // Sun (fades out during night) / Moon (fades in during night)
   const sunX = W * 0.78;
   const sunY = H * 0.08;
-  const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, H * 0.4);
-  sunGlow.addColorStop(0, 'rgba(255, 255, 230, 0.9)');
-  sunGlow.addColorStop(0.05, 'rgba(255, 250, 200, 0.5)');
-  sunGlow.addColorStop(0.15, 'rgba(255, 240, 180, 0.15)');
-  sunGlow.addColorStop(0.4, 'rgba(255, 230, 160, 0.04)');
-  sunGlow.addColorStop(1, 'rgba(255, 230, 160, 0)');
-  ctx.fillStyle = sunGlow;
-  ctx.fillRect(0, 0, W, H);
+  const sunAlpha = 1 - nb;
+  const moonX = W * 0.22;
+  const moonY = H * 0.1;
+  const moonAlpha = nb;
 
-  // Sun disc
-  ctx.fillStyle = 'rgba(255, 255, 240, 0.95)';
-  ctx.beginPath();
-  ctx.arc(sunX, sunY, 18, 0, TAU);
-  ctx.fill();
+  if (sunAlpha > 0.01) {
+    // Sun glow
+    const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, H * 0.4);
+    sunGlow.addColorStop(0, `rgba(255, 255, 230, ${0.9 * sunAlpha})`);
+    sunGlow.addColorStop(0.05, `rgba(255, 250, 200, ${0.5 * sunAlpha})`);
+    sunGlow.addColorStop(0.15, `rgba(255, 240, 180, ${0.15 * sunAlpha})`);
+    sunGlow.addColorStop(0.4, `rgba(255, 230, 160, ${0.04 * sunAlpha})`);
+    sunGlow.addColorStop(1, 'rgba(255, 230, 160, 0)');
+    ctx.fillStyle = sunGlow;
+    ctx.fillRect(0, 0, W, H);
 
-  // Old wispy clouds (background layer)
+    // Sun disc
+    ctx.fillStyle = `rgba(255, 255, 240, ${0.95 * sunAlpha})`;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 18, 0, TAU);
+    ctx.fill();
+  }
+
+  if (moonAlpha > 0.01) {
+    // Moon glow (silvery)
+    const moonGlow = ctx.createRadialGradient(moonX, moonY, 8, moonX, moonY, H * 0.3);
+    moonGlow.addColorStop(0, `rgba(200, 210, 255, ${0.6 * moonAlpha})`);
+    moonGlow.addColorStop(0.05, `rgba(180, 195, 240, ${0.3 * moonAlpha})`);
+    moonGlow.addColorStop(0.15, `rgba(150, 170, 220, ${0.08 * moonAlpha})`);
+    moonGlow.addColorStop(0.4, `rgba(120, 140, 200, ${0.02 * moonAlpha})`);
+    moonGlow.addColorStop(1, 'rgba(120, 140, 200, 0)');
+    ctx.fillStyle = moonGlow;
+    ctx.fillRect(0, 0, W, H);
+
+    // Moon disc
+    ctx.fillStyle = `rgba(220, 225, 245, ${0.9 * moonAlpha})`;
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, 14, 0, TAU);
+    ctx.fill();
+    // Moon craters (subtle)
+    ctx.fillStyle = `rgba(180, 185, 210, ${0.5 * moonAlpha})`;
+    ctx.beginPath();
+    ctx.arc(moonX - 3, moonY - 2, 3, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(moonX + 4, moonY + 3, 2, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(moonX - 1, moonY + 5, 1.5, 0, TAU);
+    ctx.fill();
+
+    // Eerie green/purple atmospheric glow at bottom
+    const eerieGlow = ctx.createLinearGradient(0, H * 0.7, 0, H);
+    eerieGlow.addColorStop(0, `rgba(20, 80, 40, 0)`);
+    eerieGlow.addColorStop(0.5, `rgba(20, 80, 40, ${0.06 * moonAlpha})`);
+    eerieGlow.addColorStop(1, `rgba(40, 20, 60, ${0.1 * moonAlpha})`);
+    ctx.fillStyle = eerieGlow;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Old wispy clouds (background layer) - darken during night
   for (const c of clouds) {
-    ctx.fillStyle = `rgba(255, 255, 255, ${c.alpha * 0.5})`;
+    const cloudR = Math.round(255 - nb * 195); // 255 -> 60
+    const cloudG = Math.round(255 - nb * 195);
+    const cloudB = Math.round(255 - nb * 185); // 255 -> 70
+    ctx.fillStyle = `rgba(${cloudR}, ${cloudG}, ${cloudB}, ${c.alpha * 0.5})`;
     ctx.beginPath();
     ctx.ellipse(c.x % (W + 400), c.y % (H + 200), c.w / 2, c.h / 2, 0, 0, TAU);
     ctx.fill();
   }
 
-  // Puffy cumulus clouds
+  // Puffy cumulus clouds - dark grey silhouettes at night
   for (const c of puffyClouds) {
     const bx = c.x % (W + 500) - 100;
     const by = c.y;
     const a = c.alpha;
-    // Shadow layer (slightly offset down-right)
+
+    // Shadow layer
+    const shR = Math.round(160 - nb * 130);
+    const shG = Math.round(175 - nb * 145);
+    const shB = Math.round(195 - nb * 155);
     for (const p of c.puffs) {
-      ctx.fillStyle = `rgba(160, 175, 195, ${a * 0.3})`;
+      ctx.fillStyle = `rgba(${shR}, ${shG}, ${shB}, ${a * 0.3})`;
       ctx.beginPath();
       ctx.ellipse(bx + p.ox + 4, by + p.oy + 3, p.rw / 2, p.rh / 2, 0, 0, TAU);
       ctx.fill();
     }
-    // Main white body
+    // Main body
+    const mainR = Math.round(255 - nb * 215);
+    const mainG = Math.round(255 - nb * 215);
+    const mainB = Math.round(255 - nb * 205);
     for (const p of c.puffs) {
-      ctx.fillStyle = `rgba(255, 255, 255, ${a * 0.85})`;
+      ctx.fillStyle = `rgba(${mainR}, ${mainG}, ${mainB}, ${a * 0.85})`;
       ctx.beginPath();
       ctx.ellipse(bx + p.ox, by + p.oy, p.rw / 2, p.rh / 2, 0, 0, TAU);
       ctx.fill();
     }
-    // Highlight (top-left lit by sun)
+    // Highlight (top-left lit by sun/moon)
+    const hiR = Math.round(255 - nb * 195);
+    const hiG = Math.round(255 - nb * 195);
+    const hiB = Math.round(255 - nb * 175);
     for (const p of c.puffs) {
-      ctx.fillStyle = `rgba(255, 255, 255, ${a * 0.5})`;
+      ctx.fillStyle = `rgba(${hiR}, ${hiG}, ${hiB}, ${a * 0.5 * (1 - nb * 0.5)})`;
       ctx.beginPath();
       ctx.ellipse(bx + p.ox - p.rw * 0.12, by + p.oy - p.rh * 0.15, p.rw * 0.35, p.rh * 0.3, 0, 0, TAU);
       ctx.fill();
     }
   }
+
+  // Green lightning flash overlay (during night)
+  if (greenLightningAlpha > 0.005) {
+    ctx.fillStyle = `rgba(40, 255, 60, ${greenLightningAlpha})`;
+    ctx.fillRect(0, 0, W, H);
+  }
 }
+
+// ─── Jet Type Draw Functions ───────────────────────────────────
+// Each draws centered at (0,0), nose pointing up (-Y), ~44x50 bounding box.
+// Accepts colors object from JET_COLORS.
+
+function drawJetF14(ctx, c) {
+  // F-14 Tomcat: wide swept-back wings, twin vertical tails, long nose, two-seat
+  // Main body
+  ctx.fillStyle = c.body;
+  ctx.beginPath();
+  ctx.moveTo(0, -26);
+  ctx.lineTo(5, -18);
+  ctx.lineTo(7, -6);
+  ctx.lineTo(8, 8);
+  ctx.lineTo(5, 20);
+  ctx.lineTo(-5, 20);
+  ctx.lineTo(-8, 8);
+  ctx.lineTo(-7, -6);
+  ctx.lineTo(-5, -18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body highlight
+  ctx.fillStyle = c.highlight;
+  ctx.beginPath();
+  ctx.moveTo(0, -24);
+  ctx.lineTo(3, -16);
+  ctx.lineTo(3, 12);
+  ctx.lineTo(-3, 12);
+  ctx.lineTo(-3, -16);
+  ctx.closePath();
+  ctx.fill();
+
+  // Canopy frame
+  ctx.fillStyle = c.frame;
+  ctx.fillRect(-0.8, -18, 1.6, 18);
+
+  // Front cockpit
+  ctx.fillStyle = c.cockpit;
+  ctx.beginPath();
+  ctx.ellipse(0, -15, 3.2, 4.5, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintF;
+  ctx.beginPath();
+  ctx.ellipse(-1, -16, 1.5, 2.2, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Rear cockpit
+  ctx.fillStyle = c.rear;
+  ctx.beginPath();
+  ctx.ellipse(0, -6, 3, 4, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintR;
+  ctx.beginPath();
+  ctx.ellipse(-1, -7, 1.3, 2, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Wings (wide swept-back)
+  ctx.fillStyle = c.wing;
+  ctx.beginPath();
+  ctx.moveTo(-7, -2);
+  ctx.lineTo(-22, 8);
+  ctx.lineTo(-20, 12);
+  ctx.lineTo(-7, 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(7, -2);
+  ctx.lineTo(22, 8);
+  ctx.lineTo(20, 12);
+  ctx.lineTo(7, 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wing tips
+  ctx.fillStyle = c.tip;
+  ctx.beginPath();
+  ctx.moveTo(-22, 8); ctx.lineTo(-20, 12); ctx.lineTo(-22, 11);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(22, 8); ctx.lineTo(20, 12); ctx.lineTo(22, 11);
+  ctx.fill();
+
+  // Tail fins
+  ctx.fillStyle = c.tail;
+  ctx.beginPath();
+  ctx.moveTo(-4, 14); ctx.lineTo(-12, 20); ctx.lineTo(-10, 22); ctx.lineTo(-4, 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(4, 14); ctx.lineTo(12, 20); ctx.lineTo(10, 22); ctx.lineTo(4, 18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Engine nozzles
+  ctx.fillStyle = c.nozzle;
+  ctx.fillRect(-8, 16, 4, 4);
+  ctx.fillRect(4, 16, 4, 4);
+
+  // Nose detail
+  ctx.fillStyle = c.nose;
+  ctx.beginPath();
+  ctx.moveTo(0, -22); ctx.lineTo(1.5, -18); ctx.lineTo(-1.5, -18);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawJetF22(ctx, c) {
+  // F-22 Raptor: diamond-shaped wings, angular body, twin canted tails, flat faceted surfaces
+  // Main body — angular/faceted
+  ctx.fillStyle = c.body;
+  ctx.beginPath();
+  ctx.moveTo(0, -24);
+  ctx.lineTo(6, -16);
+  ctx.lineTo(8, -4);
+  ctx.lineTo(7, 10);
+  ctx.lineTo(4, 18);
+  ctx.lineTo(-4, 18);
+  ctx.lineTo(-7, 10);
+  ctx.lineTo(-8, -4);
+  ctx.lineTo(-6, -16);
+  ctx.closePath();
+  ctx.fill();
+
+  // Faceted highlight panel (stealth edge)
+  ctx.fillStyle = c.highlight;
+  ctx.beginPath();
+  ctx.moveTo(0, -22);
+  ctx.lineTo(4, -14);
+  ctx.lineTo(4, 6);
+  ctx.lineTo(0, 14);
+  ctx.lineTo(-4, 6);
+  ctx.lineTo(-4, -14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Diamond wings — broader, more angular
+  ctx.fillStyle = c.wing;
+  ctx.beginPath();
+  ctx.moveTo(-7, -6);
+  ctx.lineTo(-22, 4);
+  ctx.lineTo(-18, 10);
+  ctx.lineTo(-7, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(7, -6);
+  ctx.lineTo(22, 4);
+  ctx.lineTo(18, 10);
+  ctx.lineTo(7, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wing tips
+  ctx.fillStyle = c.tip;
+  ctx.beginPath();
+  ctx.moveTo(-22, 4); ctx.lineTo(-18, 10); ctx.lineTo(-22, 8);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(22, 4); ctx.lineTo(18, 10); ctx.lineTo(22, 8);
+  ctx.fill();
+
+  // Twin canted tails (angled outward)
+  ctx.fillStyle = c.tail;
+  ctx.beginPath();
+  ctx.moveTo(-3, 12); ctx.lineTo(-10, 20); ctx.lineTo(-7, 22); ctx.lineTo(-3, 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(3, 12); ctx.lineTo(10, 20); ctx.lineTo(7, 22); ctx.lineTo(3, 16);
+  ctx.closePath();
+  ctx.fill();
+
+  // Single cockpit
+  ctx.fillStyle = c.cockpit;
+  ctx.beginPath();
+  ctx.ellipse(0, -12, 3, 5, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintF;
+  ctx.beginPath();
+  ctx.ellipse(-1, -13.5, 1.4, 2.2, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Engine nozzles (recessed, stealthy)
+  ctx.fillStyle = c.nozzle;
+  ctx.fillRect(-7, 15, 4, 3);
+  ctx.fillRect(3, 15, 4, 3);
+
+  // Nose detail — angular
+  ctx.fillStyle = c.nose;
+  ctx.beginPath();
+  ctx.moveTo(0, -20); ctx.lineTo(2, -16); ctx.lineTo(-2, -16);
+  ctx.closePath();
+  ctx.fill();
+
+  // Edge lines for stealth facets
+  ctx.strokeStyle = c.frame;
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(-4, -14); ctx.lineTo(-7, -4); ctx.lineTo(-7, 10);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(4, -14); ctx.lineTo(7, -4); ctx.lineTo(7, 10);
+  ctx.stroke();
+}
+
+function drawJetF35(ctx, c) {
+  // F-35 Lightning: trapezoidal wings, single wide tail, chunky body, wider cockpit
+  // Chunky body
+  ctx.fillStyle = c.body;
+  ctx.beginPath();
+  ctx.moveTo(0, -22);
+  ctx.lineTo(7, -14);
+  ctx.lineTo(9, -2);
+  ctx.lineTo(9, 10);
+  ctx.lineTo(6, 18);
+  ctx.lineTo(-6, 18);
+  ctx.lineTo(-9, 10);
+  ctx.lineTo(-9, -2);
+  ctx.lineTo(-7, -14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body highlight
+  ctx.fillStyle = c.highlight;
+  ctx.beginPath();
+  ctx.moveTo(0, -20);
+  ctx.lineTo(5, -12);
+  ctx.lineTo(5, 8);
+  ctx.lineTo(-5, 8);
+  ctx.lineTo(-5, -12);
+  ctx.closePath();
+  ctx.fill();
+
+  // Trapezoidal wings
+  ctx.fillStyle = c.wing;
+  ctx.beginPath();
+  ctx.moveTo(-8, -2);
+  ctx.lineTo(-20, 6);
+  ctx.lineTo(-16, 12);
+  ctx.lineTo(-8, 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(8, -2);
+  ctx.lineTo(20, 6);
+  ctx.lineTo(16, 12);
+  ctx.lineTo(8, 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wing tips
+  ctx.fillStyle = c.tip;
+  ctx.beginPath();
+  ctx.moveTo(-20, 6); ctx.lineTo(-16, 12); ctx.lineTo(-20, 10);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(20, 6); ctx.lineTo(16, 12); ctx.lineTo(20, 10);
+  ctx.fill();
+
+  // Single wide horizontal tail
+  ctx.fillStyle = c.tail;
+  ctx.beginPath();
+  ctx.moveTo(-5, 14); ctx.lineTo(-14, 20); ctx.lineTo(-10, 22); ctx.lineTo(-5, 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(5, 14); ctx.lineTo(14, 20); ctx.lineTo(10, 22); ctx.lineTo(5, 18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wide cockpit (single seat)
+  ctx.fillStyle = c.cockpit;
+  ctx.beginPath();
+  ctx.ellipse(0, -10, 4, 5.5, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintF;
+  ctx.beginPath();
+  ctx.ellipse(-1.5, -12, 1.8, 2.5, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Single wide engine nozzle
+  ctx.fillStyle = c.nozzle;
+  ctx.fillRect(-5, 16, 10, 3);
+
+  // Nose
+  ctx.fillStyle = c.nose;
+  ctx.beginPath();
+  ctx.moveTo(0, -18); ctx.lineTo(2, -14); ctx.lineTo(-2, -14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Intake detail lines
+  ctx.strokeStyle = c.frame;
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(-6, -4); ctx.lineTo(-8, 0); ctx.lineTo(-8, 6);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(6, -4); ctx.lineTo(8, 0); ctx.lineTo(8, 6);
+  ctx.stroke();
+}
+
+function drawJetSu57(ctx, c) {
+  // Su-57 Felon: wide-set engines (two body bulges), LERX extensions, widely-spaced twin tails, two-seat
+  // Main body with twin engine bulges
+  ctx.fillStyle = c.body;
+  ctx.beginPath();
+  ctx.moveTo(0, -25);
+  ctx.lineTo(5, -18);
+  ctx.lineTo(7, -8);
+  ctx.lineTo(10, 0);  // engine bulge right
+  ctx.lineTo(10, 14);
+  ctx.lineTo(6, 20);
+  ctx.lineTo(-6, 20);
+  ctx.lineTo(-10, 14);
+  ctx.lineTo(-10, 0); // engine bulge left
+  ctx.lineTo(-7, -8);
+  ctx.lineTo(-5, -18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Center fuselage highlight (between engines)
+  ctx.fillStyle = c.highlight;
+  ctx.beginPath();
+  ctx.moveTo(0, -23);
+  ctx.lineTo(4, -16);
+  ctx.lineTo(4, 12);
+  ctx.lineTo(-4, 12);
+  ctx.lineTo(-4, -16);
+  ctx.closePath();
+  ctx.fill();
+
+  // LERX (leading edge root extensions)
+  ctx.fillStyle = c.wing;
+  ctx.beginPath();
+  ctx.moveTo(-5, -14); ctx.lineTo(-12, -6); ctx.lineTo(-10, -2); ctx.lineTo(-6, -8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(5, -14); ctx.lineTo(12, -6); ctx.lineTo(10, -2); ctx.lineTo(6, -8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Main wings
+  ctx.fillStyle = c.wing;
+  ctx.beginPath();
+  ctx.moveTo(-9, 0);
+  ctx.lineTo(-22, 8);
+  ctx.lineTo(-18, 14);
+  ctx.lineTo(-9, 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(9, 0);
+  ctx.lineTo(22, 8);
+  ctx.lineTo(18, 14);
+  ctx.lineTo(9, 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wing tips
+  ctx.fillStyle = c.tip;
+  ctx.beginPath();
+  ctx.moveTo(-22, 8); ctx.lineTo(-18, 14); ctx.lineTo(-22, 12);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(22, 8); ctx.lineTo(18, 14); ctx.lineTo(22, 12);
+  ctx.fill();
+
+  // Widely-spaced twin tails
+  ctx.fillStyle = c.tail;
+  ctx.beginPath();
+  ctx.moveTo(-6, 14); ctx.lineTo(-14, 22); ctx.lineTo(-10, 24); ctx.lineTo(-6, 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6, 14); ctx.lineTo(14, 22); ctx.lineTo(10, 24); ctx.lineTo(6, 18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Canopy frame
+  ctx.fillStyle = c.frame;
+  ctx.fillRect(-0.8, -17, 1.6, 16);
+
+  // Front cockpit
+  ctx.fillStyle = c.cockpit;
+  ctx.beginPath();
+  ctx.ellipse(0, -14, 3, 4, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintF;
+  ctx.beginPath();
+  ctx.ellipse(-1, -15, 1.3, 2, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Rear cockpit
+  ctx.fillStyle = c.rear;
+  ctx.beginPath();
+  ctx.ellipse(0, -5, 2.8, 3.5, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintR;
+  ctx.beginPath();
+  ctx.ellipse(-1, -6, 1.2, 1.8, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Twin engine nozzles (wide-set)
+  ctx.fillStyle = c.nozzle;
+  ctx.fillRect(-10, 17, 4, 4);
+  ctx.fillRect(6, 17, 4, 4);
+
+  // Nose
+  ctx.fillStyle = c.nose;
+  ctx.beginPath();
+  ctx.moveTo(0, -21); ctx.lineTo(1.5, -18); ctx.lineTo(-1.5, -18);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawJetA10(ctx, c) {
+  // A-10 Warthog: straight wide wings, twin engines HIGH on rear fuselage, gun bulge nose, twin tails far apart
+  // Chunky body with nose gun bulge
+  ctx.fillStyle = c.body;
+  ctx.beginPath();
+  ctx.moveTo(0, -22);
+  ctx.lineTo(4, -18);
+  ctx.lineTo(6, -12);
+  ctx.lineTo(7, 0);
+  ctx.lineTo(7, 14);
+  ctx.lineTo(4, 18);
+  ctx.lineTo(-4, 18);
+  ctx.lineTo(-7, 14);
+  ctx.lineTo(-7, 0);
+  ctx.lineTo(-6, -12);
+  ctx.lineTo(-4, -18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body highlight
+  ctx.fillStyle = c.highlight;
+  ctx.beginPath();
+  ctx.moveTo(0, -20);
+  ctx.lineTo(3, -14);
+  ctx.lineTo(3, 10);
+  ctx.lineTo(-3, 10);
+  ctx.lineTo(-3, -14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Gun bulge on nose (distinctive)
+  ctx.fillStyle = c.frame;
+  ctx.beginPath();
+  ctx.moveTo(-3, -22);
+  ctx.lineTo(3, -22);
+  ctx.lineTo(4, -18);
+  ctx.lineTo(-4, -18);
+  ctx.closePath();
+  ctx.fill();
+  // Gun barrel dots
+  ctx.fillStyle = c.nozzle;
+  ctx.beginPath();
+  ctx.arc(0, -23, 1.5, 0, TAU);
+  ctx.fill();
+
+  // Straight wide wings (A-10 signature)
+  ctx.fillStyle = c.wing;
+  ctx.beginPath();
+  ctx.moveTo(-6, -4);
+  ctx.lineTo(-22, -4);
+  ctx.lineTo(-22, 6);
+  ctx.lineTo(-6, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6, -4);
+  ctx.lineTo(22, -4);
+  ctx.lineTo(22, 6);
+  ctx.lineTo(6, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wing tips
+  ctx.fillStyle = c.tip;
+  ctx.fillRect(-22, -4, 3, 10);
+  ctx.fillRect(19, -4, 3, 10);
+
+  // Twin engines mounted HIGH on rear fuselage (top-mounted, signature A-10)
+  ctx.fillStyle = c.frame;
+  ctx.beginPath();
+  ctx.ellipse(-8, 10, 4, 6, 0, 0, TAU);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(8, 10, 4, 6, 0, 0, TAU);
+  ctx.fill();
+  // Engine nozzles
+  ctx.fillStyle = c.nozzle;
+  ctx.beginPath();
+  ctx.ellipse(-8, 14, 3, 2, 0, 0, TAU);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(8, 14, 3, 2, 0, 0, TAU);
+  ctx.fill();
+
+  // Twin vertical tails far apart
+  ctx.fillStyle = c.tail;
+  ctx.beginPath();
+  ctx.moveTo(-10, 10); ctx.lineTo(-14, 18); ctx.lineTo(-10, 20); ctx.lineTo(-8, 14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(10, 10); ctx.lineTo(14, 18); ctx.lineTo(10, 20); ctx.lineTo(8, 14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Horizontal tail
+  ctx.fillStyle = c.tail;
+  ctx.beginPath();
+  ctx.moveTo(-4, 16); ctx.lineTo(-16, 20); ctx.lineTo(-14, 22); ctx.lineTo(-4, 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(4, 16); ctx.lineTo(16, 20); ctx.lineTo(14, 22); ctx.lineTo(4, 18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Single cockpit
+  ctx.fillStyle = c.cockpit;
+  ctx.beginPath();
+  ctx.ellipse(0, -12, 3.5, 4, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintF;
+  ctx.beginPath();
+  ctx.ellipse(-1, -13, 1.5, 2, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Nose detail
+  ctx.fillStyle = c.nose;
+  ctx.beginPath();
+  ctx.moveTo(0, -20); ctx.lineTo(1, -18); ctx.lineTo(-1, -18);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawJetSR71(ctx, c) {
+  // SR-71 Blackbird: long thin needle body, small delta wings, twin engine nacelles blended, no vertical tail
+  // Long thin body
+  ctx.fillStyle = c.body;
+  ctx.beginPath();
+  ctx.moveTo(0, -26);
+  ctx.lineTo(3, -20);
+  ctx.lineTo(4, -10);
+  ctx.lineTo(5, 0);
+  ctx.lineTo(5, 16);
+  ctx.lineTo(3, 22);
+  ctx.lineTo(-3, 22);
+  ctx.lineTo(-5, 16);
+  ctx.lineTo(-5, 0);
+  ctx.lineTo(-4, -10);
+  ctx.lineTo(-3, -20);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body highlight — thin needle spine
+  ctx.fillStyle = c.highlight;
+  ctx.beginPath();
+  ctx.moveTo(0, -24);
+  ctx.lineTo(2, -18);
+  ctx.lineTo(2, 14);
+  ctx.lineTo(-2, 14);
+  ctx.lineTo(-2, -18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Engine nacelles blended into body (bulges on sides)
+  ctx.fillStyle = c.frame;
+  ctx.beginPath();
+  ctx.moveTo(-5, -4);
+  ctx.lineTo(-10, 2);
+  ctx.lineTo(-10, 18);
+  ctx.lineTo(-7, 22);
+  ctx.lineTo(-5, 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(5, -4);
+  ctx.lineTo(10, 2);
+  ctx.lineTo(10, 18);
+  ctx.lineTo(7, 22);
+  ctx.lineTo(5, 16);
+  ctx.closePath();
+  ctx.fill();
+
+  // Nacelle highlights
+  ctx.fillStyle = c.highlight;
+  ctx.beginPath();
+  ctx.moveTo(-7, 0);
+  ctx.lineTo(-9, 4);
+  ctx.lineTo(-9, 10);
+  ctx.lineTo(-7, 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(7, 0);
+  ctx.lineTo(9, 4);
+  ctx.lineTo(9, 10);
+  ctx.lineTo(7, 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Small delta wings
+  ctx.fillStyle = c.wing;
+  ctx.beginPath();
+  ctx.moveTo(-9, 4);
+  ctx.lineTo(-18, 12);
+  ctx.lineTo(-14, 16);
+  ctx.lineTo(-9, 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(9, 4);
+  ctx.lineTo(18, 12);
+  ctx.lineTo(14, 16);
+  ctx.lineTo(9, 10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wing tips
+  ctx.fillStyle = c.tip;
+  ctx.beginPath();
+  ctx.moveTo(-18, 12); ctx.lineTo(-14, 16); ctx.lineTo(-18, 15);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(18, 12); ctx.lineTo(14, 16); ctx.lineTo(18, 15);
+  ctx.fill();
+
+  // No vertical tail — just thin wedge trailing edge
+  ctx.fillStyle = c.tail;
+  ctx.beginPath();
+  ctx.moveTo(-2, 18); ctx.lineTo(0, 24); ctx.lineTo(2, 18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Engine nozzles
+  ctx.fillStyle = c.nozzle;
+  ctx.beginPath();
+  ctx.ellipse(-8, 20, 2.5, 2, 0, 0, TAU);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(8, 20, 2.5, 2, 0, 0, TAU);
+  ctx.fill();
+
+  // Single cockpit (tiny, set far forward)
+  ctx.fillStyle = c.cockpit;
+  ctx.beginPath();
+  ctx.ellipse(0, -16, 2.5, 4, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = c.glintF;
+  ctx.beginPath();
+  ctx.ellipse(-0.8, -17.5, 1.2, 2, -0.2, 0, TAU);
+  ctx.fill();
+
+  // Nose — long needle point
+  ctx.fillStyle = c.nose;
+  ctx.beginPath();
+  ctx.moveTo(0, -24); ctx.lineTo(1, -20); ctx.lineTo(-1, -20);
+  ctx.closePath();
+  ctx.fill();
+
+  // Detail lines along nacelles
+  ctx.strokeStyle = c.frame;
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(-8, 2); ctx.lineTo(-9, 16);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(8, 2); ctx.lineTo(9, 16);
+  ctx.stroke();
+}
+
+// Lookup for jet draw functions
+const JET_DRAW_FNS = {
+  drawJetF14, drawJetF22, drawJetF35, drawJetSu57, drawJetA10, drawJetSR71
+};
 
 // Parameterized jet drawing: colorScheme 1 = P1 red, 2 = P2 pink
 function drawPlayerJetGeneric(x, y, bank, p, colorScheme) {
@@ -2530,48 +3679,13 @@ function drawPlayerJetGeneric(x, y, bank, p, colorScheme) {
   }
   ctx.scale(rollScaleX, 1);
 
-  // Color palette
-  let bodyMain, bodyHighlight, canopyFrame, cockpitFront, cockpitRear, glintFront, glintRear;
-  let wingColor, wingTip, tailColor, nozzle, noseDetail;
-  let shieldColor, abInner, abMid, abOuter;
+  // Color palette from picker
+  const c = colorScheme === 2 ? JET_COLORS[p2ColorIndex] : JET_COLORS[p1ColorIndex];
+  const shieldColor = c.shield, abInner = c.abI, abMid = c.abM, abOuter = c.abO;
 
-  if (colorScheme === 2) {
-    // Bright hot pink scheme for P2
-    bodyMain = '#ff2d9b';
-    bodyHighlight = '#ff5fbf';
-    canopyFrame = '#cc1a78';
-    cockpitFront = '#ff8ad4';
-    cockpitRear = '#ff70c8';
-    glintFront = 'rgba(255, 200, 240, 0.7)';
-    glintRear = 'rgba(255, 200, 240, 0.6)';
-    wingColor = '#e0187a';
-    wingTip = '#ffaadd';
-    tailColor = '#e0187a';
-    nozzle = '#aa1060';
-    noseDetail = '#ffaadd';
-    shieldColor = 'rgba(255, 50, 160, ';
-    abInner = '255, 255, 255';
-    abMid = '255, 50, 180';
-    abOuter = '255, 20, 130';
-  } else {
-    // Bright red scheme for P1
-    bodyMain = '#e81010';
-    bodyHighlight = '#ff3030';
-    canopyFrame = '#b80808';
-    cockpitFront = '#ff9090';
-    cockpitRear = '#ff7878';
-    glintFront = 'rgba(255, 230, 230, 0.65)';
-    glintRear = 'rgba(255, 230, 230, 0.55)';
-    wingColor = '#c00a0a';
-    wingTip = '#ffbbbb';
-    tailColor = '#c00a0a';
-    nozzle = '#7a0505';
-    noseDetail = '#ffbbbb';
-    shieldColor = 'rgba(255, 60, 60, ';
-    abInner = '255, 255, 255';
-    abMid = '255, 80, 30';
-    abOuter = '255, 30, 5';
-  }
+  // Determine jet type
+  const jetIdx = colorScheme === 2 ? p2JetIndex : p1JetIndex;
+  const jetType = JET_TYPES[jetIdx];
 
   // Shield glow
   if (p.shield > 0) {
@@ -2612,120 +3726,9 @@ function drawPlayerJetGeneric(x, y, bank, p, colorScheme) {
     ctx.fill();
   }
 
-  // Main body -- elongated for tandem two-seater
-  ctx.fillStyle = bodyMain;
-  ctx.beginPath();
-  ctx.moveTo(0, -26); // Nose (extended forward)
-  ctx.lineTo(5, -18);
-  ctx.lineTo(7, -6);
-  ctx.lineTo(8, 8);
-  ctx.lineTo(5, 20);
-  ctx.lineTo(-5, 20);
-  ctx.lineTo(-8, 8);
-  ctx.lineTo(-7, -6);
-  ctx.lineTo(-5, -18);
-  ctx.closePath();
-  ctx.fill();
-
-  // Body highlight -- center spine
-  ctx.fillStyle = bodyHighlight;
-  ctx.beginPath();
-  ctx.moveTo(0, -24);
-  ctx.lineTo(3, -16);
-  ctx.lineTo(3, 12);
-  ctx.lineTo(-3, 12);
-  ctx.lineTo(-3, -16);
-  ctx.closePath();
-  ctx.fill();
-
-  // Canopy frame -- runs between both seats
-  ctx.fillStyle = canopyFrame;
-  ctx.fillRect(-0.8, -18, 1.6, 18);
-
-  // Front cockpit (pilot)
-  ctx.fillStyle = cockpitFront;
-  ctx.beginPath();
-  ctx.ellipse(0, -15, 3.2, 4.5, 0, 0, TAU);
-  ctx.fill();
-  // Front glass glint
-  ctx.fillStyle = glintFront;
-  ctx.beginPath();
-  ctx.ellipse(-1, -16, 1.5, 2.2, -0.2, 0, TAU);
-  ctx.fill();
-
-  // Rear cockpit (weapons officer)
-  ctx.fillStyle = cockpitRear;
-  ctx.beginPath();
-  ctx.ellipse(0, -6, 3, 4, 0, 0, TAU);
-  ctx.fill();
-  // Rear glass glint
-  ctx.fillStyle = glintRear;
-  ctx.beginPath();
-  ctx.ellipse(-1, -7, 1.3, 2, -0.2, 0, TAU);
-  ctx.fill();
-
-  // Wings
-  ctx.fillStyle = wingColor;
-  // Left wing
-  ctx.beginPath();
-  ctx.moveTo(-7, -2);
-  ctx.lineTo(-22, 8);
-  ctx.lineTo(-20, 12);
-  ctx.lineTo(-7, 8);
-  ctx.closePath();
-  ctx.fill();
-  // Right wing
-  ctx.beginPath();
-  ctx.moveTo(7, -2);
-  ctx.lineTo(22, 8);
-  ctx.lineTo(20, 12);
-  ctx.lineTo(7, 8);
-  ctx.closePath();
-  ctx.fill();
-
-  // Wing tips
-  ctx.fillStyle = wingTip;
-  ctx.beginPath();
-  ctx.moveTo(-22, 8);
-  ctx.lineTo(-20, 12);
-  ctx.lineTo(-22, 11);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(22, 8);
-  ctx.lineTo(20, 12);
-  ctx.lineTo(22, 11);
-  ctx.fill();
-
-  // Tail fins
-  ctx.fillStyle = tailColor;
-  ctx.beginPath();
-  ctx.moveTo(-4, 14);
-  ctx.lineTo(-12, 20);
-  ctx.lineTo(-10, 22);
-  ctx.lineTo(-4, 18);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(4, 14);
-  ctx.lineTo(12, 20);
-  ctx.lineTo(10, 22);
-  ctx.lineTo(4, 18);
-  ctx.closePath();
-  ctx.fill();
-
-  // Engine nozzles
-  ctx.fillStyle = nozzle;
-  ctx.fillRect(-8, 16, 4, 4);
-  ctx.fillRect(4, 16, 4, 4);
-
-  // Nose detail
-  ctx.fillStyle = noseDetail;
-  ctx.beginPath();
-  ctx.moveTo(0, -22);
-  ctx.lineTo(1.5, -18);
-  ctx.lineTo(-1.5, -18);
-  ctx.closePath();
-  ctx.fill();
+  // Draw the jet type-specific shape
+  const drawFn = JET_DRAW_FNS[jetType.drawFn];
+  drawFn(ctx, c);
 
   ctx.restore();
 }
@@ -2763,6 +3766,9 @@ function drawEnemyJet(e) {
       break;
     case 'ace':
       drawAceJet();
+      break;
+    case 'zombie':
+      drawZombieJet(e);
       break;
     case 'boss':
       drawBossJet(e);
@@ -3001,6 +4007,103 @@ function drawAceJet() {
   ctx.fill();
 }
 
+function drawZombieJet(e) {
+  // Damaged, decrepit jet with torn wings, green smoke, glowing cockpit
+  const wobble = Math.sin((e.wobblePhase || 0)) * 0.08;
+  ctx.rotate(wobble);
+
+  // Body - dark green, battered
+  ctx.fillStyle = '#2a4a2a';
+  ctx.beginPath();
+  ctx.moveTo(0, -14);
+  ctx.lineTo(5, -5);
+  ctx.lineTo(6, 4);
+  ctx.lineTo(7, 10);
+  ctx.lineTo(4, 15);
+  ctx.lineTo(-4, 15);
+  ctx.lineTo(-7, 10);
+  ctx.lineTo(-6, 4);
+  ctx.lineTo(-5, -5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body highlight - slightly lighter
+  ctx.fillStyle = '#3a5a3a';
+  ctx.beginPath();
+  ctx.moveTo(0, -12);
+  ctx.lineTo(3, -5);
+  ctx.lineTo(3, 8);
+  ctx.lineTo(-3, 8);
+  ctx.lineTo(-3, -5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Left wing (torn - jagged edges)
+  ctx.fillStyle = '#1a3a1a';
+  ctx.beginPath();
+  ctx.moveTo(-5, 1);
+  ctx.lineTo(-12, 5);
+  ctx.lineTo(-16, 8);
+  ctx.lineTo(-14, 6); // jagged tear
+  ctx.lineTo(-13, 9);
+  ctx.lineTo(-10, 7); // gap in wing
+  ctx.lineTo(-5, 7);
+  ctx.closePath();
+  ctx.fill();
+
+  // Right wing (torn - pieces missing)
+  ctx.beginPath();
+  ctx.moveTo(5, 1);
+  ctx.lineTo(11, 4);
+  ctx.lineTo(14, 7);
+  ctx.lineTo(12, 5); // jagged tear
+  ctx.lineTo(15, 9);
+  ctx.lineTo(13, 8);
+  ctx.lineTo(10, 10);
+  ctx.lineTo(5, 7);
+  ctx.closePath();
+  ctx.fill();
+
+  // Broken tail (asymmetric - one side missing)
+  ctx.fillStyle = '#1a3a1a';
+  ctx.beginPath();
+  ctx.moveTo(-2, 13);
+  ctx.lineTo(-5, 17);
+  ctx.lineTo(-3, 16);
+  ctx.lineTo(0, 14);
+  ctx.closePath();
+  ctx.fill();
+  // Right tail stub (broken off)
+  ctx.beginPath();
+  ctx.moveTo(2, 13);
+  ctx.lineTo(3, 15);
+  ctx.lineTo(1, 14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Glowing green cockpit (pulsing)
+  const pulse = 0.6 + Math.sin(gameTime * 0.15) * 0.4;
+  ctx.fillStyle = `rgba(68, 255, 68, ${pulse})`;
+  ctx.beginPath();
+  ctx.ellipse(0, -7, 2.5, 3.5, 0, 0, TAU);
+  ctx.fill();
+
+  // Cockpit glow halo
+  ctx.fillStyle = `rgba(68, 255, 68, ${pulse * 0.3})`;
+  ctx.beginPath();
+  ctx.ellipse(0, -7, 5, 6, 0, 0, TAU);
+  ctx.fill();
+
+  // Damage scratches
+  ctx.strokeStyle = '#0a200a';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(-3, 2); ctx.lineTo(2, 5);
+  ctx.moveTo(1, -2); ctx.lineTo(-2, 3);
+  ctx.moveTo(4, 6); ctx.lineTo(2, 10);
+  ctx.stroke();
+}
+
 function drawBossJet(e) {
   // Massive boss jet
   const hpRatio = e.hp / e.maxHp;
@@ -3146,14 +4249,26 @@ function drawEnemyBullets() {
       ctx.fillRect(-1.5, 4, 3, 5);
       ctx.restore();
     } else {
-      ctx.fillStyle = '#ff4444';
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.w / 2, 0, TAU);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(255, 100, 100, 0.4)';
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.w, 0, TAU);
-      ctx.fill();
+      // Brighter tracers during night
+      if (isNightMode && nightBlend > 0.5) {
+        ctx.fillStyle = '#ff6666';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.w / 2 + 0.5, 0, TAU);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255, 150, 150, 0.5)';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.w * 1.3, 0, TAU);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = '#ff4444';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.w / 2, 0, TAU);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255, 100, 100, 0.4)';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.w, 0, TAU);
+        ctx.fill();
+      }
     }
   }
 }
@@ -3265,7 +4380,7 @@ function drawHUD() {
   ctx.fill();
 
   // P1 label
-  ctx.fillStyle = '#ff4444';
+  ctx.fillStyle = JET_COLORS[p1ColorIndex].swatch;
   ctx.font = 'bold 11px Arial';
   ctx.textAlign = 'left';
   ctx.fillText('P1', hbX1, hbY - 6);
@@ -3316,7 +4431,7 @@ function drawHUD() {
   ctx.fill();
 
   // P2 label
-  ctx.fillStyle = '#ff2d9b';
+  ctx.fillStyle = JET_COLORS[p2ColorIndex].swatch;
   ctx.font = 'bold 11px Arial';
   ctx.textAlign = 'left';
   ctx.fillText('P2', hbX2, hbY - 6);
@@ -3376,6 +4491,44 @@ function drawHUD() {
   ctx.textAlign = 'left';
   ctx.fillText(`WAVE ${wave}`, 20, 30);
 
+  // ── Round Timer Display (top center) ──
+  if (gameState === STATE.PLAYING || gameState === STATE.WAVE_INTRO || gameState === STATE.BOSS_INTRO) {
+    const seconds = Math.max(0, Math.ceil(roundTimer / 60));
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const timeStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    const isLow = seconds <= 5;
+    const pulse = isLow ? (0.5 + Math.sin(gameTime * 0.3) * 0.5) : 1;
+
+    ctx.textAlign = 'center';
+    if (isNightMode) {
+      // Green pulsing text during night
+      const greenPulse = 0.7 + Math.sin(gameTime * 0.1) * 0.3;
+      ctx.font = `bold ${Math.min(28, W * 0.035)}px Arial`;
+      ctx.shadowColor = '#44ff44';
+      ctx.shadowBlur = 15;
+      if (isLow) {
+        ctx.fillStyle = `rgba(255, 60, 60, ${pulse})`;
+        ctx.shadowColor = '#ff0000';
+      } else {
+        ctx.fillStyle = `rgba(68, 255, 68, ${greenPulse})`;
+      }
+      ctx.fillText(`NIGHT ${timeStr}`, W / 2, 85);
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.font = `bold ${Math.min(24, W * 0.03)}px Arial`;
+      if (isLow) {
+        ctx.fillStyle = `rgba(255, 60, 60, ${pulse})`;
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 10;
+      } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      }
+      ctx.fillText(timeStr, W / 2, 85);
+      ctx.shadowBlur = 0;
+    }
+  }
+
   // Combo
   if (comboCount >= 3) {
     const comboAlpha = Math.min(1, comboTimer / 30);
@@ -3427,7 +4580,7 @@ function drawHUD() {
   if (!player.alive && player.respawnTimer > 0) {
     const alpha = 0.5 + Math.sin(gameTime * 0.1) * 0.3;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = '#ff4444';
+    ctx.fillStyle = JET_COLORS[p1ColorIndex].swatch;
     ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('P1 RESPAWNING...', W * 0.3, H * 0.5);
@@ -3436,7 +4589,7 @@ function drawHUD() {
   if (!player2.alive && player2.respawnTimer > 0) {
     const alpha = 0.5 + Math.sin(gameTime * 0.1) * 0.3;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = '#ff2d9b';
+    ctx.fillStyle = JET_COLORS[p2ColorIndex].swatch;
     ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('P2 RESPAWNING...', W * 0.7, H * 0.5);
@@ -3458,21 +4611,21 @@ function drawMinimap() {
   roundRect(mX, mY, mW, mH, 4);
   ctx.stroke();
 
-  // P1 dot (red)
+  // P1 dot
   if (player.alive) {
     const px = mX + (player.x / W) * mW;
     const py = mY + (player.y / H) * mH;
-    ctx.fillStyle = '#ff4444';
+    ctx.fillStyle = JET_COLORS[p1ColorIndex].swatch;
     ctx.beginPath();
     ctx.arc(px, py, 2.5, 0, TAU);
     ctx.fill();
   }
 
-  // P2 dot (pink)
+  // P2 dot
   if (player2.alive) {
     const px2 = mX + (player2.x / W) * mW;
     const py2 = mY + (player2.y / H) * mH;
-    ctx.fillStyle = '#ff2d9b';
+    ctx.fillStyle = JET_COLORS[p2ColorIndex].swatch;
     ctx.beginPath();
     ctx.arc(px2, py2, 2.5, 0, TAU);
     ctx.fill();
@@ -3577,7 +4730,7 @@ function drawTitleScreen() {
   ctx.font = `${Math.min(13, W * 0.016)}px Arial`;
 
   // P1 controls (left column)
-  ctx.fillStyle = '#ff4444';
+  ctx.fillStyle = JET_COLORS[p1ColorIndex].swatch;
   ctx.font = `bold ${Math.min(14, W * 0.018)}px Arial`;
   ctx.fillText('P1 CONTROLS', W / 2 - colGap, ctrlY);
   ctx.fillStyle = '#7799bb';
@@ -3593,7 +4746,7 @@ function drawTitleScreen() {
   });
 
   // P2 controls (right column)
-  ctx.fillStyle = '#ff2d9b';
+  ctx.fillStyle = JET_COLORS[p2ColorIndex].swatch;
   ctx.font = `bold ${Math.min(14, W * 0.018)}px Arial`;
   ctx.fillText('P2 CONTROLS', W / 2 + colGap, ctrlY);
   ctx.fillStyle = '#7799bb';
@@ -3613,10 +4766,206 @@ function drawTitleScreen() {
   ctx.font = `${Math.min(13, W * 0.016)}px Arial`;
   ctx.fillText('P: Pause', W / 2, ctrlY + 22 + 4 * 20 + 10);
 
+  // ── Color Picker Panel (right side) ──
+  colorPickerAreas = [];
+  const panelX = W - 180;
+  const panelY = H * 0.15;
+  const swatchSize = 28;
+  const swatchGap = 6;
+  const panelW = 160;
+  const rowH = swatchSize + swatchGap;
+  const panelH = 60 + JET_COLORS.length * rowH + 20;
+
+  // Panel background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.beginPath();
+  ctx.roundRect(panelX - 10, panelY - 10, panelW + 20, panelH, 8);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(panelX - 10, panelY - 10, panelW + 20, panelH, 8);
+  ctx.stroke();
+
+  // P1 header
+  ctx.fillStyle = JET_COLORS[p1ColorIndex].swatch;
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('P1 JET', panelX, panelY + 10);
+
+  // P2 header
+  ctx.fillStyle = JET_COLORS[p2ColorIndex].swatch;
+  ctx.fillText('P2 JET', panelX + 80, panelY + 10);
+
+  // Color rows
+  for (let i = 0; i < JET_COLORS.length; i++) {
+    const rowY = panelY + 28 + i * rowH;
+    const jc = JET_COLORS[i];
+
+    // Color name
+    ctx.fillStyle = '#aaa';
+    ctx.font = '11px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(jc.name, panelX + swatchSize * 2 + 20, rowY + swatchSize * 0.65);
+
+    // P1 swatch
+    const p1x = panelX;
+    ctx.fillStyle = jc.swatch;
+    ctx.fillRect(p1x, rowY, swatchSize, swatchSize);
+    if (i === p1ColorIndex) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p1x - 1, rowY - 1, swatchSize + 2, swatchSize + 2);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('P1', p1x + swatchSize / 2, rowY + swatchSize / 2 + 4);
+    }
+    colorPickerAreas.push({ x: p1x, y: rowY, w: swatchSize, h: swatchSize, player: 1, colorIndex: i });
+
+    // P2 swatch
+    const p2x = panelX + swatchSize + 8;
+    ctx.fillStyle = jc.swatch;
+    ctx.fillRect(p2x, rowY, swatchSize, swatchSize);
+    if (i === p2ColorIndex) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p2x - 1, rowY - 1, swatchSize + 2, swatchSize + 2);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('P2', p2x + swatchSize / 2, rowY + swatchSize / 2 + 4);
+    }
+    colorPickerAreas.push({ x: p2x, y: rowY, w: swatchSize, h: swatchSize, player: 2, colorIndex: i });
+  }
+
+  // ── Jet Type Picker Panel (left side of screen) ──
+  jetPickerAreas = [];
+  const jpX = 20;
+  const jpY = H * 0.15;
+  const jetCardW = 42;
+  const jetCardH = 54;
+  const jetGap = 4;
+  const jpRows = JET_TYPES.length;
+  const jpPanelW = 280;
+  const jpPanelH = 30 + jpRows * (jetCardH + jetGap) + 10;
+
+  // Panel background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.beginPath();
+  ctx.roundRect(jpX - 10, jpY - 10, jpPanelW + 20, jpPanelH, 8);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(jpX - 10, jpY - 10, jpPanelW + 20, jpPanelH, 8);
+  ctx.stroke();
+
+  // Header
+  ctx.fillStyle = '#aaccee';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('SELECT JET TYPE', jpX, jpY + 10);
+
+  // Column headers
+  ctx.fillStyle = JET_COLORS[p1ColorIndex].swatch;
+  ctx.font = 'bold 11px Arial';
+  ctx.fillText('P1', jpX, jpY + 26);
+  ctx.fillStyle = JET_COLORS[p2ColorIndex].swatch;
+  ctx.fillText('P2', jpX + jetCardW + jetGap, jpY + 26);
+
+  for (let i = 0; i < JET_TYPES.length; i++) {
+    const jt = JET_TYPES[i];
+    const rowY = jpY + 32 + i * (jetCardH + jetGap);
+
+    // ── P1 card ──
+    const p1cx = jpX;
+    const isP1Selected = (i === p1JetIndex);
+    // Card background
+    ctx.fillStyle = isP1Selected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)';
+    ctx.fillRect(p1cx, rowY, jetCardW, jetCardH);
+    if (isP1Selected) {
+      ctx.strokeStyle = JET_COLORS[p1ColorIndex].swatch;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p1cx, rowY, jetCardW, jetCardH);
+    }
+    // Draw jet preview
+    ctx.save();
+    ctx.translate(p1cx + jetCardW / 2, rowY + 22);
+    ctx.scale(0.6, 0.6);
+    const drawFnP1 = JET_DRAW_FNS[jt.drawFn];
+    drawFnP1(ctx, JET_COLORS[p1ColorIndex]);
+    ctx.restore();
+    // Name below preview
+    ctx.fillStyle = isP1Selected ? '#fff' : '#888';
+    ctx.font = '7px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(jt.name.split(' ')[0], p1cx + jetCardW / 2, rowY + jetCardH - 3);
+    jetPickerAreas.push({ x: p1cx, y: rowY, w: jetCardW, h: jetCardH, player: 1, jetIndex: i });
+
+    // ── P2 card ──
+    const p2cx = jpX + jetCardW + jetGap;
+    const isP2Selected = (i === p2JetIndex);
+    ctx.fillStyle = isP2Selected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)';
+    ctx.fillRect(p2cx, rowY, jetCardW, jetCardH);
+    if (isP2Selected) {
+      ctx.strokeStyle = JET_COLORS[p2ColorIndex].swatch;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p2cx, rowY, jetCardW, jetCardH);
+    }
+    // Draw jet preview
+    ctx.save();
+    ctx.translate(p2cx + jetCardW / 2, rowY + 22);
+    ctx.scale(0.6, 0.6);
+    const drawFnP2 = JET_DRAW_FNS[jt.drawFn];
+    drawFnP2(ctx, JET_COLORS[p2ColorIndex]);
+    ctx.restore();
+    ctx.fillStyle = isP2Selected ? '#fff' : '#888';
+    ctx.font = '7px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(jt.name.split(' ')[0], p2cx + jetCardW / 2, rowY + jetCardH - 3);
+    jetPickerAreas.push({ x: p2cx, y: rowY, w: jetCardW, h: jetCardH, player: 2, jetIndex: i });
+
+    // ── Stats & info (right of cards) ──
+    const infoX = p2cx + jetCardW + 12;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ccc';
+    ctx.font = 'bold 10px Arial';
+    ctx.fillText(jt.name, infoX, rowY + 12);
+    ctx.fillStyle = '#888';
+    ctx.font = '9px Arial';
+    ctx.fillText(jt.desc, infoX, rowY + 24);
+
+    // Stat bars
+    const barX = infoX;
+    const barW = 80;
+    const barH = 5;
+    const stats = [
+      { label: 'SPD', value: jt.speed, max: 10, color: '#44aaff' },
+      { label: 'HP',  value: jt.maxHp, max: 180, color: '#44ff44' },
+      { label: 'FPW', value: 10 - jt.fireRate + 1, max: 10, color: '#ff8844' }, // Lower fireRate = faster = higher bar
+      { label: 'MSL', value: jt.missiles, max: 10, color: '#ff4444' },
+    ];
+    stats.forEach((s, si) => {
+      const sy = rowY + 32 + si * 9;
+      ctx.fillStyle = '#666';
+      ctx.font = '7px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(s.label, barX, sy + 4);
+      // Bar background
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      ctx.fillRect(barX + 24, sy, barW, barH);
+      // Bar fill
+      ctx.fillStyle = s.color;
+      ctx.fillRect(barX + 24, sy, barW * (s.value / s.max), barH);
+    });
+  }
+
   // High score
   if (highScore > 0) {
     ctx.fillStyle = '#ffdd44';
     ctx.font = `bold ${Math.min(18, W * 0.025)}px Arial`;
+    ctx.textAlign = 'center';
     ctx.fillText(`HIGH SCORE: ${highScore.toLocaleString()}`, W / 2, H * 0.92);
   }
 
@@ -3695,6 +5044,40 @@ function drawBossIntro() {
   ctx.globalAlpha = 1;
 }
 
+function drawNightAnnouncement() {
+  const maxTimer = 120;
+  const t = 1 - nightAnnouncementTimer / maxTimer;
+  const alpha = t < 0.15 ? t / 0.15 : t > 0.6 ? (1 - t) / 0.4 : 1;
+
+  // Screen flash at the start
+  if (nightAnnouncementTimer > maxTimer - 10) {
+    const flashAlpha = (nightAnnouncementTimer - (maxTimer - 10)) / 10;
+    if (nightAnnouncementText === 'NIGHT FALLS...') {
+      ctx.fillStyle = `rgba(0, 40, 0, ${flashAlpha * 0.3})`;
+    } else {
+      ctx.fillStyle = `rgba(60, 50, 20, ${flashAlpha * 0.3})`;
+    }
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = nightAnnouncementColor;
+  ctx.font = `bold ${Math.min(52, W * 0.065)}px Arial`;
+  ctx.textAlign = 'center';
+
+  if (nightAnnouncementText === 'NIGHT FALLS...') {
+    ctx.shadowColor = '#44ff44';
+    ctx.shadowBlur = 30;
+  } else {
+    ctx.shadowColor = '#ffcc00';
+    ctx.shadowBlur = 30;
+  }
+
+  ctx.fillText(nightAnnouncementText, W / 2, H * 0.4);
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+}
+
 function drawPauseScreen() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fillRect(0, 0, W, H);
@@ -3758,6 +5141,11 @@ function render() {
   if (gameState === STATE.BOSS_INTRO) drawBossIntro();
   if (gameState === STATE.PAUSED) drawPauseScreen();
   if (gameState === STATE.GAMEOVER) drawGameOverScreen();
+
+  // Night/Dawn announcement overlay
+  if (nightAnnouncementTimer > 0) {
+    drawNightAnnouncement();
+  }
 }
 
 // ─── Game Loop ──────────────────────────────────────────────────
