@@ -12,8 +12,7 @@ Browser-based fighter jet game. Single `index.html` file, pure Canvas + Web Audi
 ---
 
 ## Who I am working with
-Andrew Cunliffe — Staff-level designer/technologist at Intuit, Expert Platform (IEP/VEP).
-Deep Figma expertise, comfortable with HTML/CSS/JS, shell scripting, Node.js. Systems thinker, IDS compliance focus.
+Andrew Cunliffe — Staff-level designer/technologist. Deep Figma expertise, comfortable with HTML/CSS/JS, shell scripting, Node.js. Systems thinker.
 
 ---
 
@@ -32,6 +31,11 @@ Deep Figma expertise, comfortable with HTML/CSS/JS, shell scripting, Node.js. Sy
 ### Think through UX before building
 - Before building any user-facing flow, reason through the complete journey end-to-end.
 - Ask: "What does a brand new user actually have at this moment?"
+
+### Design craft — Jony Ive level
+- All UIs must be visually polished: generous whitespace, clear hierarchy, refined typography, elegant interactions.
+- No bare modals, no cramped layouts, no floating buttons without context.
+- Before shipping any UI, ask: "Would this embarrass Apple's design team?" If yes, iterate.
 
 ### Terse communication
 - Stop summarizing what you just did at the end of every response — Andrew can read the diff.
@@ -68,30 +72,13 @@ Before acting on any message, check for weak-prompt patterns. If matched, flag i
 - Never hardcode tokens, PATs, API keys, or credentials in source files.
 - Use environment variables, dotfiles (`~/.my_token`), localStorage, or runtime user input.
 
-### Token regeneration — check all consumers
-- Check: source code, dotfiles, browser localStorage, Slack workflow URLs, launchd/cron, CI/CD.
-
-### Check parent layout before touching spacing
-- Before adding margin/padding, check the parent's display, flex-direction, and gap.
-- If the parent has a large gap, wrap elements in a container with its own tighter gap.
-
 ### Rollback method
 - Never use `git revert` alone if an auto-save hook is running.
 - Always edit the file directly to remove unwanted code, then let the hook commit.
 
-### IDS (Intuit Design System) compliance
-- Every CSS value should use `var(--token, fallback)` — no bare hex, px, or font values.
-- Buttons: `.btn .btn-primary` / `.btn .btn-secondary` — never inline button styles.
-- Every interactive element must have a hover state.
-- Icons: `stroke="currentColor"`, sized 14/16/20px.
-- Probe for IDS tokens before hardcoding any design value.
-
-### Canvas renderer rules
-1. Always include `align-items:stretch;justify-content:flex-start;` in canvas body inline styles.
-2. Always specify column widths — at least one `flex:1`, rest fixed px.
-3. Scrollable zones: `flex:1;height:0;overflow-y:auto`.
-4. Body fill: `flex:1;min-height:0` — never `height:100%` inside flex.
-5. Inner flex rows: `width:100%;overflow:hidden`.
+### Check parent layout before touching spacing
+- Before adding margin/padding, check the parent's display, flex-direction, and gap.
+- If the parent has a large gap, wrap elements in a container with its own tighter gap.
 
 ### Responsiveness
 1. Proportional over fixed for layout columns.
@@ -108,6 +95,7 @@ Before acting on any message, check for weak-prompt patterns. If matched, flag i
 - Push explicitly once per logical fix — after local tests pass.
 - Never use `--no-verify` or `--no-gpg-sign`.
 - `git revert` alone is ineffective with auto-save hooks — always edit files directly.
+- Delete feature branches immediately after merging.
 - Commit message: short imperative title, then body with what and why. End with `Co-Authored-By:`.
 
 ---
@@ -127,42 +115,55 @@ On terminal crash or context compaction: immediately write and push the session 
 
 ---
 
+## Revisit system
+
+When Andrew says "Revisit", run the full audit:
+1. Audit session log for mistakes, wrong-first-approaches
+2. Classify: autonomy gap, accuracy gap, speed gap, comm gap, missing info gap
+3. Build rules from each mistake -> CLAUDE.md, skills, or memory
+4. Update `conversations/metrics.md`
+5. Update `conversations/ideas-and-innovations.md`
+6. Identify what Andrew can provide upfront next time
+7. Report back with metrics, lessons, strategy-scored backlog
+8. Size report to session — short session = short text, big session = full HTML report
+
+---
+
+## Metrics tracking
+
+Tracked in `conversations/metrics.md`:
+| Metric | Target |
+|--------|--------|
+| First-attempt accuracy | 90% |
+| Push rejections | 0 |
+| Autonomy score | 90% |
+| Round-trips per task | 1 |
+| Tests passing | 100% |
+| Log currency | Immediate |
+
+---
+
 ## Skills
-See `.claude/skills/` for: revisit, regression-guard, session-log
+See `.claude/skills/` for: revisit, regression-guard, session-log, playwright-tests, d4d
 
 ---
 
-## Strategy — Intuit context
+## Design for Delight (D4D) — customer empathy framework
 
-### Big Bets
-Primary: **BB2 — Connect People to Experts**
-
-### Prioritization — Ladder of Impact
-For every task, produce a quick ladder:
+### Customer Problem Statement
 ```
-Task: [title]
-- Problem: [who, what pain, why now]
-- Ladder: Big Bet -> Outcome Goal -> Input Goal
-- Score: Alignment/5 | Input Lift/5 | Time-to-Impact/5 | Customer/5 | Effort/5(rev) | Sequencing/5 -> Total/30
-- Decision: Proceed / Defer / Reject
+- I am [narrow description of the customer/persona]
+- I am trying to [desired outcome]
+- But [problem/barrier]
+- Because [root cause]
+- Which makes me feel [emotion]
 ```
 
----
-
-## Credential safety pattern
-- `~/.figma_pat` — Figma personal access token
-- `~/.iep_portal_pat` — GitHub Enterprise PAT
-- `~/.iep-slack-webhook-url` — Slack webhook
-- `~/.iep-slack-bot-token` — Slack bot token
-- Never put webhook URLs or bot tokens in source code.
-
----
-
-## Slack notifications
-- Channel: `#iep-ai-native-preview-request-access`
-- Andrew's Slack user ID: `W8FJ0JY83` (use `<@W8FJ0JY83>` to tag)
-- Webhook URL stored in `~/.iep-slack-webhook-url`
-- Slack mrkdwn: `*bold*`, `_italic_`, `<url|text>` for links
+### Hypothesis Statement
+```
+We believe that [solution/approach] for [customer/segment] will [customer benefit/outcome].
+We'll know this is true when [signal/metric] moves to [target] by [timeframe].
+```
 
 ---
 
