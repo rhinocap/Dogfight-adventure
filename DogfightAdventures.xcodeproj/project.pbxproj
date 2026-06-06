@@ -7,116 +7,125 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04869F1712C1B155F5293B8A /* EnemyAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CDCA512467DE63B55594EC9 /* EnemyAircraft.swift */; };
-		09BA03505D94A60A127B0781 /* WorldBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43941A75C88B26A522F1824 /* WorldBuilder.swift */; };
-		128D7E85427596558EE981EE /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DD2B42BBAD73EAE7D7FBF7 /* GameViewController.swift */; };
-		439D5BE1F061ADADE86F683F /* AircraftFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7B9665C68FFB55FC7261E8 /* AircraftFactory.swift */; };
-		68B94E3D7D65940F04520D41 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 45BC74B94208382DF688F515 /* Assets.xcassets */; };
-		93AFEDE2B087CE082FDF5162 /* WeaponSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BC427995B8E58DFCB91324 /* WeaponSystem.swift */; };
-		C39B6B5ECBA7E74F5D38B697 /* PlayerAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE03D6D0098C1B15727AC3A /* PlayerAircraft.swift */; };
-		D0C616CBCA8DC0B2B449059C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 31F58F0780CD24325228B046 /* Foundation.framework */; };
-		E0BC6C206D88AE9438267639 /* FlightHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 907F2A627B1510BC6A9DE3BE /* FlightHUD.swift */; };
-		E274624E19F7615288E380C9 /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EBA15838934AB9810A516C1 /* MathUtils.swift */; };
-		EF3A40295338943C49669BA3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE449610B08452A40DD5978 /* AppDelegate.swift */; };
+		1A1A8260FA260116FE201AC0 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E40BD474D2E5FD9E982F2054 /* GameViewController.swift */; };
+		3532008CA63B40614F6B72F1 /* WorldBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A765B0B00F3C6983302F6711 /* WorldBuilder.swift */; };
+		408A54725AA6D09404ECF4AB /* PlayerAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 854964643C8E74F0EC9E1874 /* PlayerAircraft.swift */; };
+		46D36220982E42A3CF08F8DC /* AircraftFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = C459E831B86E1397EB993FB2 /* AircraftFactory.swift */; };
+		6A49506555C37EC727C753D0 /* FlightHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D308463A3749C3601D91F9 /* FlightHUD.swift */; };
+		80AFD1481E0A5843B12C2777 /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF8E0839E01218972442955 /* MathUtils.swift */; };
+		89781525175ADFEEB06A3DEF /* bay_heightmap.f32 in Resources */ = {isa = PBXBuildFile; fileRef = 366D9EE24FCA7DA1A719423F /* bay_heightmap.f32 */; };
+		8A783A1A84AC637E33BC04AE /* bay_texture.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3D12DDEF25D43D4B453E6108 /* bay_texture.jpg */; };
+		9AB25EE82828139F8CD0E8FF /* EnemyAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C204723482C89578668EC16 /* EnemyAircraft.swift */; };
+		B0F222FC110AC5F7B4F2F9F5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C94B1A455681E76028FE28 /* AppDelegate.swift */; };
+		CCD1D5770A71235E36B548A5 /* bay_meta.json in Resources */ = {isa = PBXBuildFile; fileRef = 2F55B726982839B5879EDC0D /* bay_meta.json */; };
+		CE51619A230751D51C6EEA5C /* WeaponSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A4BBC781C9AF5A6338B662 /* WeaponSystem.swift */; };
+		F8D62AD2EAC48C367480A21C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6525DD7FAADEE3A163CBAB87 /* Assets.xcassets */; };
+		FBE6715C6E43EED3A20B2C85 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DE90AA063B5052AB8596FF0 /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0CE03D6D0098C1B15727AC3A /* PlayerAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerAircraft.swift; sourceTree = "<group>"; };
-		0EBA15838934AB9810A516C1 /* MathUtils.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MathUtils.swift; sourceTree = "<group>"; };
-		31DD2B42BBAD73EAE7D7FBF7 /* GameViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
-		31F58F0780CD24325228B046 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		45BC74B94208382DF688F515 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		5AE449610B08452A40DD5978 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		6CDCA512467DE63B55594EC9 /* EnemyAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnemyAircraft.swift; sourceTree = "<group>"; };
-		85BC427995B8E58DFCB91324 /* WeaponSystem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeaponSystem.swift; sourceTree = "<group>"; };
-		907F2A627B1510BC6A9DE3BE /* FlightHUD.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlightHUD.swift; sourceTree = "<group>"; };
-		A93E1B3B8B9C6352EABA3E5D /* DogfightAdventures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogfightAdventures.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		BB7B9665C68FFB55FC7261E8 /* AircraftFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AircraftFactory.swift; sourceTree = "<group>"; };
-		E43941A75C88B26A522F1824 /* WorldBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorldBuilder.swift; sourceTree = "<group>"; };
+		2C204723482C89578668EC16 /* EnemyAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnemyAircraft.swift; sourceTree = "<group>"; };
+		2F55B726982839B5879EDC0D /* bay_meta.json */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_meta.json; sourceTree = "<group>"; };
+		366D9EE24FCA7DA1A719423F /* bay_heightmap.f32 */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_heightmap.f32; sourceTree = "<group>"; };
+		3D12DDEF25D43D4B453E6108 /* bay_texture.jpg */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_texture.jpg; sourceTree = "<group>"; };
+		56A4BBC781C9AF5A6338B662 /* WeaponSystem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeaponSystem.swift; sourceTree = "<group>"; };
+		6525DD7FAADEE3A163CBAB87 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6EF8E0839E01218972442955 /* MathUtils.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MathUtils.swift; sourceTree = "<group>"; };
+		7DE90AA063B5052AB8596FF0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		80C94B1A455681E76028FE28 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		854964643C8E74F0EC9E1874 /* PlayerAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerAircraft.swift; sourceTree = "<group>"; };
+		99D308463A3749C3601D91F9 /* FlightHUD.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlightHUD.swift; sourceTree = "<group>"; };
+		A765B0B00F3C6983302F6711 /* WorldBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorldBuilder.swift; sourceTree = "<group>"; };
+		BA9B0BBA93F883BD94D75776 /* DogfightAdventures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogfightAdventures.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C459E831B86E1397EB993FB2 /* AircraftFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AircraftFactory.swift; sourceTree = "<group>"; };
+		E40BD474D2E5FD9E982F2054 /* GameViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		7D231FAFB0C1C9160BBF5F36 /* Frameworks */ = {
+		5B3A2DC62DE72034F7D18DC9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0C616CBCA8DC0B2B449059C /* Foundation.framework in Frameworks */,
+				FBE6715C6E43EED3A20B2C85 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		343B86BF46C253C0A0816869 /* Sources */ = {
+		05C21EEBD74C67363C552BF1 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				BB7B9665C68FFB55FC7261E8 /* AircraftFactory.swift */,
-				5AE449610B08452A40DD5978 /* AppDelegate.swift */,
-				6CDCA512467DE63B55594EC9 /* EnemyAircraft.swift */,
-				907F2A627B1510BC6A9DE3BE /* FlightHUD.swift */,
-				31DD2B42BBAD73EAE7D7FBF7 /* GameViewController.swift */,
-				0EBA15838934AB9810A516C1 /* MathUtils.swift */,
-				0CE03D6D0098C1B15727AC3A /* PlayerAircraft.swift */,
-				85BC427995B8E58DFCB91324 /* WeaponSystem.swift */,
-				E43941A75C88B26A522F1824 /* WorldBuilder.swift */,
+				C459E831B86E1397EB993FB2 /* AircraftFactory.swift */,
+				80C94B1A455681E76028FE28 /* AppDelegate.swift */,
+				2C204723482C89578668EC16 /* EnemyAircraft.swift */,
+				99D308463A3749C3601D91F9 /* FlightHUD.swift */,
+				E40BD474D2E5FD9E982F2054 /* GameViewController.swift */,
+				6EF8E0839E01218972442955 /* MathUtils.swift */,
+				854964643C8E74F0EC9E1874 /* PlayerAircraft.swift */,
+				56A4BBC781C9AF5A6338B662 /* WeaponSystem.swift */,
+				A765B0B00F3C6983302F6711 /* WorldBuilder.swift */,
 			);
 			name = Sources;
 			path = DogfightAdventures/Sources;
 			sourceTree = "<group>";
 		};
-		379D0624C50DFC8BD46553CF /* iOS */ = {
+		3274BEBE25D0A8E2082BE796 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
-				31F58F0780CD24325228B046 /* Foundation.framework */,
+				7DE90AA063B5052AB8596FF0 /* Foundation.framework */,
 			);
 			name = iOS;
 			sourceTree = "<group>";
 		};
-		42A9EFC4BEB6B13780B7B6DB /* Frameworks */ = {
+		39780259497D378CEF72B013 = {
 			isa = PBXGroup;
 			children = (
-				379D0624C50DFC8BD46553CF /* iOS */,
+				C237F08E61387EF95291D9FF /* Products */,
+				B85691C777AF2B627F7C8D5B /* Frameworks */,
+				05C21EEBD74C67363C552BF1 /* Sources */,
+				FB4F6644BCECD13AB063BCCC /* Resources */,
+			);
+			sourceTree = "<group>";
+		};
+		B85691C777AF2B627F7C8D5B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3274BEBE25D0A8E2082BE796 /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		97F1462A21965B75514AD889 /* Products */ = {
+		C237F08E61387EF95291D9FF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A93E1B3B8B9C6352EABA3E5D /* DogfightAdventures.app */,
+				BA9B0BBA93F883BD94D75776 /* DogfightAdventures.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9D20A418C9351A81B0A3DA62 /* Resources */ = {
+		FB4F6644BCECD13AB063BCCC /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				45BC74B94208382DF688F515 /* Assets.xcassets */,
+				6525DD7FAADEE3A163CBAB87 /* Assets.xcassets */,
+				2F55B726982839B5879EDC0D /* bay_meta.json */,
+				366D9EE24FCA7DA1A719423F /* bay_heightmap.f32 */,
+				3D12DDEF25D43D4B453E6108 /* bay_texture.jpg */,
 			);
 			name = Resources;
 			path = DogfightAdventures/Resources;
 			sourceTree = "<group>";
 		};
-		C98A8AD3D0E1EC418109A383 = {
-			isa = PBXGroup;
-			children = (
-				97F1462A21965B75514AD889 /* Products */,
-				42A9EFC4BEB6B13780B7B6DB /* Frameworks */,
-				343B86BF46C253C0A0816869 /* Sources */,
-				9D20A418C9351A81B0A3DA62 /* Resources */,
-			);
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4AD2B72C78D738483DE2DDDC /* DogfightAdventures */ = {
+		31095791F2A481C3AE470833 /* DogfightAdventures */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C1EFB01E8C9BBAC2695E36ED /* Build configuration list for PBXNativeTarget "DogfightAdventures" */;
+			buildConfigurationList = 46A00535F4D5DCC9132A7BDB /* Build configuration list for PBXNativeTarget "DogfightAdventures" */;
 			buildPhases = (
-				16196B913E5F1E580DFDBB59 /* Sources */,
-				7D231FAFB0C1C9160BBF5F36 /* Frameworks */,
-				848622CAB52C42209606C1F7 /* Resources */,
+				D2E787DF74E70EB810172633 /* Sources */,
+				5B3A2DC62DE72034F7D18DC9 /* Frameworks */,
+				C02ADE2099CE20A0C54C09DC /* Resources */,
 			);
 			buildRules = (
 			);
@@ -124,19 +133,19 @@
 			);
 			name = DogfightAdventures;
 			productName = DogfightAdventures;
-			productReference = A93E1B3B8B9C6352EABA3E5D /* DogfightAdventures.app */;
+			productReference = BA9B0BBA93F883BD94D75776 /* DogfightAdventures.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		C05CBCDB4081DAEA744D26B2 /* Project object */ = {
+		350BE5C801912AEEACFC6404 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 			};
-			buildConfigurationList = 88DE21415642FC65EDFFAB21 /* Build configuration list for PBXProject "DogfightAdventures" */;
+			buildConfigurationList = CC870F0198694939EC09ADF9 /* Build configuration list for PBXProject "DogfightAdventures" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -144,50 +153,53 @@
 				en,
 				Base,
 			);
-			mainGroup = C98A8AD3D0E1EC418109A383;
+			mainGroup = 39780259497D378CEF72B013;
 			minimizedProjectReferenceProxies = 0;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 97F1462A21965B75514AD889 /* Products */;
+			productRefGroup = C237F08E61387EF95291D9FF /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4AD2B72C78D738483DE2DDDC /* DogfightAdventures */,
+				31095791F2A481C3AE470833 /* DogfightAdventures */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		848622CAB52C42209606C1F7 /* Resources */ = {
+		C02ADE2099CE20A0C54C09DC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				68B94E3D7D65940F04520D41 /* Assets.xcassets in Resources */,
+				F8D62AD2EAC48C367480A21C /* Assets.xcassets in Resources */,
+				CCD1D5770A71235E36B548A5 /* bay_meta.json in Resources */,
+				89781525175ADFEEB06A3DEF /* bay_heightmap.f32 in Resources */,
+				8A783A1A84AC637E33BC04AE /* bay_texture.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		16196B913E5F1E580DFDBB59 /* Sources */ = {
+		D2E787DF74E70EB810172633 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				439D5BE1F061ADADE86F683F /* AircraftFactory.swift in Sources */,
-				EF3A40295338943C49669BA3 /* AppDelegate.swift in Sources */,
-				04869F1712C1B155F5293B8A /* EnemyAircraft.swift in Sources */,
-				E0BC6C206D88AE9438267639 /* FlightHUD.swift in Sources */,
-				128D7E85427596558EE981EE /* GameViewController.swift in Sources */,
-				E274624E19F7615288E380C9 /* MathUtils.swift in Sources */,
-				C39B6B5ECBA7E74F5D38B697 /* PlayerAircraft.swift in Sources */,
-				93AFEDE2B087CE082FDF5162 /* WeaponSystem.swift in Sources */,
-				09BA03505D94A60A127B0781 /* WorldBuilder.swift in Sources */,
+				46D36220982E42A3CF08F8DC /* AircraftFactory.swift in Sources */,
+				B0F222FC110AC5F7B4F2F9F5 /* AppDelegate.swift in Sources */,
+				9AB25EE82828139F8CD0E8FF /* EnemyAircraft.swift in Sources */,
+				6A49506555C37EC727C753D0 /* FlightHUD.swift in Sources */,
+				1A1A8260FA260116FE201AC0 /* GameViewController.swift in Sources */,
+				80AFD1481E0A5843B12C2777 /* MathUtils.swift in Sources */,
+				408A54725AA6D09404ECF4AB /* PlayerAircraft.swift in Sources */,
+				CE51619A230751D51C6EEA5C /* WeaponSystem.swift in Sources */,
+				3532008CA63B40614F6B72F1 /* WorldBuilder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		37BC51F2AAF84895BDED315B /* Release */ = {
+		04919FBF225A89D6C200D44F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -241,7 +253,7 @@
 			};
 			name = Release;
 		};
-		5782BD0D99F42C432C43C96F /* Debug */ = {
+		0FEF22F69F7DB8CE57F3B148 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -302,7 +314,7 @@
 			};
 			name = Debug;
 		};
-		849DE0DBEB1F86BA0E361621 /* Debug */ = {
+		71606DDE06D6F342799E7DF3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -332,7 +344,7 @@
 			};
 			name = Debug;
 		};
-		BD4AA9B314B74A2C7774DA43 /* Release */ = {
+		DB11C61FC0ADCD79416238C4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -366,25 +378,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		88DE21415642FC65EDFFAB21 /* Build configuration list for PBXProject "DogfightAdventures" */ = {
+		46A00535F4D5DCC9132A7BDB /* Build configuration list for PBXNativeTarget "DogfightAdventures" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5782BD0D99F42C432C43C96F /* Debug */,
-				37BC51F2AAF84895BDED315B /* Release */,
+				DB11C61FC0ADCD79416238C4 /* Release */,
+				71606DDE06D6F342799E7DF3 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C1EFB01E8C9BBAC2695E36ED /* Build configuration list for PBXNativeTarget "DogfightAdventures" */ = {
+		CC870F0198694939EC09ADF9 /* Build configuration list for PBXProject "DogfightAdventures" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				BD4AA9B314B74A2C7774DA43 /* Release */,
-				849DE0DBEB1F86BA0E361621 /* Debug */,
+				0FEF22F69F7DB8CE57F3B148 /* Debug */,
+				04919FBF225A89D6C200D44F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = C05CBCDB4081DAEA744D26B2 /* Project object */;
+	rootObject = 350BE5C801912AEEACFC6404 /* Project object */;
 }

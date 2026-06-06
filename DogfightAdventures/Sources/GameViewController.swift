@@ -64,7 +64,7 @@ final class GameViewController: UIViewController {
     private func setupCamera() {
         let cam = SCNCamera()
         cam.zNear = 1
-        cam.zFar = 22000          // critical: default 100 would clip the whole world
+        cam.zFar = 30000          // covers the full 16km Bay world; fog hides the far edge
         cam.fieldOfView = 65
         cameraNode.camera = cam
         scene.rootNode.addChildNode(cameraNode)

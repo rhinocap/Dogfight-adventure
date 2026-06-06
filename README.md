@@ -117,10 +117,28 @@ reachability alone can't satisfy:
   install the already-built signed app (no rebuild; the wildcard dev profile
   covers all registered devices).
 
-## Swapping in marketplace city assets
+## Real San Francisco Bay world data
 
-The brief mentioned Sketchfab/TurboSquid assets. Those require accounts,
-licensing, and payment that can't be acquired headlessly, so the world is
-procedural for now. To swap in a real city model: drop a `.usdz`/`.dae` into
-`DogfightAdventures/Resources/`, load it in `WorldBuilder.buildLandmarks()`, and
-nothing else changes — the rest of the game only calls `WorldBuilder.build(into:)`.
+The world is built from **real geographic data** of the SF Bay (≈23 km square,
+centered on the Golden Gate):
+
+- **Elevation** — [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/)
+  (Terrarium-encoded, ODbL) decoded into a heightmap → a 256×256 SceneKit terrain
+  mesh. Real coastline, real hills (Marin, Twin Peaks, East Bay).
+- **Imagery** — Esri *World Imagery* satellite tiles, stitched and draped on the
+  terrain as the diffuse texture. © Esri and its imagery partners.
+- A water plane at sea level fills the bay/ocean, so the coastline emerges
+  exactly where land rises above 0 m.
+- Golden Gate + Bay Bridge are placed at their true lat/lon (`geoToWorld`),
+  scaled to real metres.
+
+### Regenerating the world data
+
+```bash
+node scripts/geo_fetch.mjs     # download elevation + imagery tiles for the bbox
+swift scripts/geo_build.swift  # -> DogfightAdventures/Resources/bay_{texture.jpg,heightmap.f32,meta.json}
+ruby scripts/gen_project.rb    # (re)bundle the resources
+```
+
+Edit the `BBOX`/`Z` in `geo_fetch.mjs` to cover a different area or resolution.
+If the baked assets are missing, `WorldBuilder` falls back to a simple world.

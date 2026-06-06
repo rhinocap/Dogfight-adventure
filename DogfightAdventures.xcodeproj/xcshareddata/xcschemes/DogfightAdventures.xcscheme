@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4AD2B72C78D738483DE2DDDC"
+               BlueprintIdentifier = "31095791F2A481C3AE470833"
                BuildableName = "DogfightAdventures.app"
                BlueprintName = "DogfightAdventures"
                ReferencedContainer = "container:DogfightAdventures.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4AD2B72C78D738483DE2DDDC"
+            BlueprintIdentifier = "31095791F2A481C3AE470833"
             BuildableName = "DogfightAdventures.app"
             BlueprintName = "DogfightAdventures"
             ReferencedContainer = "container:DogfightAdventures.xcodeproj">
@@ -53,7 +53,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4AD2B72C78D738483DE2DDDC"
+            BlueprintIdentifier = "31095791F2A481C3AE470833"
             BuildableName = "DogfightAdventures.app"
             BlueprintName = "DogfightAdventures"
             ReferencedContainer = "container:DogfightAdventures.xcodeproj">
@@ -70,7 +70,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4AD2B72C78D738483DE2DDDC"
+            BlueprintIdentifier = "31095791F2A481C3AE470833"
             BuildableName = "DogfightAdventures.app"
             BlueprintName = "DogfightAdventures"
             ReferencedContainer = "container:DogfightAdventures.xcodeproj">

@@ -20,10 +20,13 @@ Dir.glob(File.join(ROOT, 'DogfightAdventures/Sources/*.swift')).sort.each do |f|
   target.add_file_references([ref])
 end
 
-# App icon / asset catalog.
+# App icon / asset catalog + baked Bay data resources.
 res_group = project.main_group.new_group('Resources', 'DogfightAdventures/Resources')
-assets = res_group.new_reference('Assets.xcassets')
-target.add_resources([assets])
+target.add_resources([res_group.new_reference('Assets.xcassets')])
+%w[bay_meta.json bay_heightmap.f32 bay_texture.jpg].each do |res|
+  path = File.join(ROOT, 'DogfightAdventures/Resources', res)
+  target.add_resources([res_group.new_reference(res)]) if File.exist?(path)
+end
 
 orientations = %w[UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight]
 
