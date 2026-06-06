@@ -20,6 +20,11 @@ Dir.glob(File.join(ROOT, 'DogfightAdventures/Sources/*.swift')).sort.each do |f|
   target.add_file_references([ref])
 end
 
+# App icon / asset catalog.
+res_group = project.main_group.new_group('Resources', 'DogfightAdventures/Resources')
+assets = res_group.new_reference('Assets.xcassets')
+target.add_resources([assets])
+
 orientations = %w[UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight]
 
 target.build_configurations.each do |config|
@@ -36,6 +41,7 @@ target.build_configurations.each do |config|
   s['CURRENT_PROJECT_VERSION'] = '1'
   s['CODE_SIGN_STYLE'] = 'Automatic'
   s['DEVELOPMENT_TEAM'] = '8W34JFWLTB'
+  s['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
   # Info.plist synthesized keys.
   s['INFOPLIST_KEY_CFBundleDisplayName'] = 'Dogfight'
   s['INFOPLIST_KEY_UIStatusBarHidden'] = 'YES'
