@@ -35,7 +35,7 @@ target.build_configurations.each do |config|
   s['MARKETING_VERSION'] = '1.0'
   s['CURRENT_PROJECT_VERSION'] = '1'
   s['CODE_SIGN_STYLE'] = 'Automatic'
-  s['DEVELOPMENT_TEAM'] = '7478QA89YJ'
+  s['DEVELOPMENT_TEAM'] = '8W34JFWLTB'
   # Info.plist synthesized keys.
   s['INFOPLIST_KEY_CFBundleDisplayName'] = 'Dogfight'
   s['INFOPLIST_KEY_UIStatusBarHidden'] = 'YES'

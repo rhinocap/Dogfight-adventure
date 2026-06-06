@@ -79,35 +79,43 @@ xcrun simctl launch booted com.cunliffe.dogfightadventures
 
 ## Deploying to a physical device (declan-ipad / declan-iphone)
 
-> **Status:** blocked on device pairing — see below.
-
-`scripts/deploy.sh <device-name>` installs + launches on a device that is
-**paired** with this Mac:
+> **Status:** deployed + running on declan-ipad. declan-iphone deploys the same
+> way the moment its Developer Mode is on.
 
 ```bash
-bash scripts/deploy.sh declan-ipad
+bash scripts/deploy.sh declan-ipad     # by name or UDID
 ```
 
-### Why Tailscale alone isn't enough
+`deploy.sh` is fully headless: it registers the device with App Store Connect via
+an API key, builds + signs (CPU-capped), then installs and launches.
 
-`declan-ipad` (100.100.96.71) and `declan-iphone` (100.101.112.110) are reachable
-over the Tailscale mesh (ping works), **but iOS app installation requires a
-lockdown *pairing/trust* relationship between this Mac and the device — not just
-IP reachability.** `xcrun devicectl list devices` shows only devices already
-paired here (currently "Andrew's 17 Pro" + Watch). The declan devices are not
-paired, so `devicectl`/Xcode report `device was not found`.
+### Three one-time prerequisites per device
 
-To deploy, the device must be paired **once**:
+Apple gates physical-device deploys behind a few things that Tailscale's IP
+reachability alone can't satisfy:
 
-1. Connect the iPad/iPhone to this Mac via USB.
-2. On the device, tap **Trust This Computer** and enter the passcode.
-3. In Xcode → **Settings → Components/Devices**, optionally enable
-   **Connect via network** so future deploys work over the LAN/Tailscale.
-4. Then `bash scripts/deploy.sh declan-ipad` works (automatic signing registers
-   the device UDID against team `7478QA89YJ` on first install).
+1. **Pairing/trust** — connect the device to this Mac via USB once and tap
+   **Trust This Computer**. (Tailscale gives IP reachability but not the lockdown
+   pairing record `devicectl` needs.)
+2. **Developer Mode** — on the device: **Settings → Privacy & Security →
+   Developer Mode → ON → restart → confirm**. This *cannot* be enabled remotely
+   by design (requires a physical toggle + reboot).
+3. **Device registered + signed** — handled automatically by `deploy.sh`:
+   - Signs with team **`8W34JFWLTB`** (the active paid team; the `7478QA89YJ`
+     "Apple Development" personal team has no usable account session).
+   - Because the command-line Xcode account token isn't reliably available
+     headlessly, signing uses an **App Store Connect API key**
+     (`~/.appstoreconnect/private_keys/AuthKey_<id>.p8` + `issuer.txt`) via
+     `xcodebuild -authenticationKey*`, which registers the device and mints a
+     development provisioning profile without the GUI.
 
-The signed-ready arm64 build is already produced at
-`build/DeviceBuild/Build/Products/Release-iphoneos/DogfightAdventures.app`.
+### Helpers
+
+- `scripts/register_devices.mjs <keyId> "name:udid" …` — register devices with
+  App Store Connect (ES256 JWT, no deps beyond Node).
+- `scripts/install_when_ready.sh <udid> <label>` — wait for Developer Mode, then
+  install the already-built signed app (no rebuild; the wildcard dev profile
+  covers all registered devices).
 
 ## Swapping in marketplace city assets
 
