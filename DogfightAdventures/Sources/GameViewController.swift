@@ -27,6 +27,11 @@ final class GameViewController: UIViewController {
     private var playerFireCooldown: Float = 0
     private var camPos = V3(0, 500, 3000)
     private var gameOver = false
+
+    private enum CameraMode { case chase, cockpit }
+    private var cameraMode: CameraMode = .chase
+    private let aimTimeScale: Float = 0.30   // slow-motion factor while aiming
+    private var currentFov: Double = 65
     private var spawn: (position: V3, heading: simd_quatf) = (V3(0, 450, 2600), simd_quatf(angle: 0, axis: WORLD_UP))
 
     private let enemyTarget = 4
@@ -85,7 +90,13 @@ final class GameViewController: UIViewController {
         hud.frame = view.bounds
         hud.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(hud)
+        hud.onToggleView = { [weak self] in self?.toggleView() }
         hud.showBanner("DOGFIGHT — BAY AREA", color: .white)
+    }
+
+    private func toggleView() {
+        cameraMode = (cameraMode == .chase) ? .cockpit : .chase
+        hud.showBanner(cameraMode == .cockpit ? "COCKPIT VIEW" : "CHASE VIEW", color: .white)
     }
 
     // MARK: Enemies
@@ -119,7 +130,10 @@ final class GameViewController: UIViewController {
         lastTime = link.timestamp
         guard dt > 0 else { return }
 
-        if !gameOver { updateGame(dt: dt) }
+        // Slow-motion while aiming: the world updates slowly, but the camera
+        // and view stay smooth (use real dt).
+        let simDt = hud.aiming ? dt * aimTimeScale : dt
+        if !gameOver { updateGame(dt: simDt) }
         updateCamera(dt: dt)
         updateReadouts()
     }
@@ -193,18 +207,35 @@ final class GameViewController: UIViewController {
         }
     }
 
-    // MARK: Camera (stable damped chase)
+    // MARK: Camera (chase or first-person cockpit)
 
     private func updateCamera(dt: Float) {
-        let back = -player.forward
-        // Blend world-up with the aircraft's up so the camera banks a little but never rolls fully.
-        let camUp = simd_normalize(lerp(WORLD_UP, player.orientation.up, 0.30))
-        let desired = player.position + back * 24 + camUp * 8
-        let k = clampf(6 * dt, 0, 1)
-        camPos = lerp(camPos, desired, k)
-        cameraNode.simdPosition = camPos
-        let lookTarget = player.position + player.forward * 40
-        cameraNode.look(at: SCNVector3(lookTarget), up: SCNVector3(camUp), localFront: SCNVector3(0, 0, -1))
+        // In cockpit view the plane model is hidden so you see straight out.
+        player.node.isHidden = (cameraMode == .cockpit)
+
+        switch cameraMode {
+        case .chase:
+            let back = -player.forward
+            // Blend world-up with the aircraft's up so the camera banks a little but never rolls fully.
+            let camUp = simd_normalize(lerp(WORLD_UP, player.orientation.up, 0.30))
+            let desired = player.position + back * 24 + camUp * 8
+            camPos = lerp(camPos, desired, clampf(6 * dt, 0, 1))
+            cameraNode.simdPosition = camPos
+            let lookTarget = player.position + player.forward * 40
+            cameraNode.look(at: SCNVector3(lookTarget), up: SCNVector3(camUp), localFront: SCNVector3(0, 0, -1))
+
+        case .cockpit:
+            let up = player.orientation.up
+            let eye = player.position + player.forward * 6 + up * 1.2
+            cameraNode.simdPosition = eye
+            let lookTarget = player.position + player.forward * 200
+            cameraNode.look(at: SCNVector3(lookTarget), up: SCNVector3(up), localFront: SCNVector3(0, 0, -1))
+        }
+
+        // Zoom in a touch while aiming (slow-mo) for precision.
+        let targetFov: Double = hud.aiming ? 42 : 65
+        currentFov = currentFov + (targetFov - currentFov) * Double(clampf(8 * dt, 0, 1))
+        cameraNode.camera?.fieldOfView = CGFloat(currentFov)
     }
 
     // MARK: Readouts

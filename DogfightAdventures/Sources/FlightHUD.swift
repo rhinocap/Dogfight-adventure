@@ -16,14 +16,18 @@ final class FlightHUD: UIView {
     private(set) var pitchInput: Float = 0   // -1 ... +1  (drag down = nose up)
     private(set) var throttle: Float = 0.6   // 0 ... 1
     private(set) var firing: Bool = false
+    private(set) var aiming: Bool = false   // hold AIM → slow-motion
 
     var onRestart: (() -> Void)?
+    var onToggleView: (() -> Void)?         // tap VIEW → switch camera
 
     // MARK: Layout constants
     private let stickRadius: CGFloat = 92
     private let knobRadius: CGFloat = 40
     private let throttleSize = CGSize(width: 78, height: 260)
     private let fireRadius: CGFloat = 58
+    private let aimRadius: CGFloat = 48
+    private let viewRadius: CGFloat = 44
 
     // MARK: Layers
     private let stickBase = CAShapeLayer()
@@ -32,6 +36,8 @@ final class FlightHUD: UIView {
     private let throttleFill = CAShapeLayer()
     private let throttleKnob = CAShapeLayer()
     private let fireRing = CAShapeLayer()
+    private let aimRing = CAShapeLayer()
+    private let viewRing = CAShapeLayer()
     private let crosshair = CAShapeLayer()
 
     // MARK: Readout labels
@@ -41,14 +47,19 @@ final class FlightHUD: UIView {
     private let enemiesLabel = HUDLabel()
     private let banner = HUDLabel(size: 34, weight: .bold)
     private let hint = HUDLabel(size: 14, weight: .regular)
+    private let fireLabel = HUDLabel(size: 16, weight: .bold)
+    private let aimLabel = HUDLabel(size: 15, weight: .bold)
+    private let viewLabel = HUDLabel(size: 14, weight: .bold)
 
     // MARK: Geometry (recomputed on layout)
     private var stickCenter: CGPoint = .zero
     private var fireCenter: CGPoint = .zero
+    private var aimCenter: CGPoint = .zero
+    private var viewCenter: CGPoint = .zero
     private var throttleRect: CGRect = .zero
 
     // MARK: Touch routing
-    private enum Control { case stick, throttle, fire }
+    private enum Control { case stick, throttle, fire, aim, view }
     private var assignments: [Int: Control] = [:] // ObjectIdentifier hash → control
 
     override init(frame: CGRect) {
@@ -80,16 +91,23 @@ final class FlightHUD: UIView {
         style(throttleKnob, fill: UIColor(white: 1, alpha: 0.30), stroke: edge, lineWidth: 2.5)
         style(fireRing, fill: UIColor(red: 0.95, green: 0.25, blue: 0.20, alpha: 0.28),
               stroke: UIColor(red: 1, green: 0.5, blue: 0.45, alpha: 0.9), lineWidth: 2.5)
+        style(aimRing, fill: UIColor(red: 1.0, green: 0.82, blue: 0.20, alpha: 0.24),
+              stroke: UIColor(red: 1.0, green: 0.88, blue: 0.4, alpha: 0.95), lineWidth: 2.5)
+        style(viewRing, fill: UIColor(red: 0.30, green: 0.70, blue: 1.0, alpha: 0.22),
+              stroke: UIColor(red: 0.6, green: 0.85, blue: 1.0, alpha: 0.95), lineWidth: 2.5)
         style(crosshair, fill: .clear, stroke: UIColor(red: 0.4, green: 1, blue: 0.6, alpha: 0.85), lineWidth: 2)
     }
 
     private func setupLabels() {
-        [speedLabel, altLabel, healthLabel, enemiesLabel, banner, hint].forEach { addSubview($0) }
+        [speedLabel, altLabel, healthLabel, enemiesLabel, banner, hint,
+         fireLabel, aimLabel, viewLabel].forEach { addSubview($0) }
         banner.textAlignment = .center
         banner.alpha = 0
         hint.textAlignment = .center
         hint.alpha = 0.85
-        hint.text = "Right thumb: steer  ·  Left: throttle  ·  Fire button to shoot"
+        hint.text = "Right thumb: steer  ·  Left: throttle  ·  FIRE shoots  ·  AIM slows time  ·  VIEW changes camera"
+        for l in [fireLabel, aimLabel, viewLabel] { l.textAlignment = .center }
+        fireLabel.text = "FIRE"; aimLabel.text = "AIM"; viewLabel.text = "VIEW"
     }
 
     // MARK: Layout
@@ -101,8 +119,11 @@ final class FlightHUD: UIView {
 
         stickCenter = CGPoint(x: b.maxX - inset - stickRadius, y: b.maxY - inset - stickRadius)
         fireCenter = CGPoint(x: stickCenter.x - stickRadius - fireRadius - 36, y: b.maxY - inset - fireRadius)
+        // AIM sits above FIRE; VIEW sits above the throttle on the left.
+        aimCenter = CGPoint(x: fireCenter.x, y: fireCenter.y - fireRadius - aimRadius - 30)
         throttleRect = CGRect(x: inset, y: b.maxY - inset - throttleSize.height,
                               width: throttleSize.width, height: throttleSize.height)
+        viewCenter = CGPoint(x: throttleRect.midX, y: throttleRect.minY - viewRadius - 34)
 
         stickBase.path = UIBezierPath(ovalIn: circleRect(stickCenter, stickRadius)).cgPath
         positionKnob(.zero)
@@ -111,6 +132,11 @@ final class FlightHUD: UIView {
         updateThrottleVisual()
 
         fireRing.path = UIBezierPath(ovalIn: circleRect(fireCenter, fireRadius)).cgPath
+        aimRing.path = UIBezierPath(ovalIn: circleRect(aimCenter, aimRadius)).cgPath
+        viewRing.path = UIBezierPath(ovalIn: circleRect(viewCenter, viewRadius)).cgPath
+        fireLabel.frame = CGRect(x: fireCenter.x - 40, y: fireCenter.y - 11, width: 80, height: 22)
+        aimLabel.frame = CGRect(x: aimCenter.x - 40, y: aimCenter.y - 11, width: 80, height: 22)
+        viewLabel.frame = CGRect(x: viewCenter.x - 40, y: viewCenter.y - 11, width: 80, height: 22)
 
         crosshair.path = crosshairPath(center: CGPoint(x: b.midX, y: b.midY))
 
@@ -197,6 +223,14 @@ final class FlightHUD: UIView {
                 assignments[key] = .fire
                 firing = true
                 pulse(fireRing)
+            } else if distance(p, aimCenter) <= aimRadius + 10 {
+                assignments[key] = .aim
+                aiming = true
+                aimRing.fillColor = UIColor(red: 1.0, green: 0.82, blue: 0.20, alpha: 0.55).cgColor
+            } else if distance(p, viewCenter) <= viewRadius + 10 {
+                assignments[key] = .view
+                pulse(viewRing)
+                onToggleView?()
             } else if throttleRect.insetBy(dx: -40, dy: -40).contains(p) {
                 assignments[key] = .throttle
                 updateThrottle(p)
@@ -216,7 +250,7 @@ final class FlightHUD: UIView {
             switch control {
             case .stick: updateStick(p)
             case .throttle: updateThrottle(p)
-            case .fire: break
+            case .fire, .aim, .view: break
             }
         }
     }
@@ -232,7 +266,10 @@ final class FlightHUD: UIView {
                 rollInput = 0; pitchInput = 0; positionKnob(.zero)
             case .fire:
                 firing = false
-            case .throttle:
+            case .aim:
+                aiming = false
+                aimRing.fillColor = UIColor(red: 1.0, green: 0.82, blue: 0.20, alpha: 0.24).cgColor
+            case .throttle, .view:
                 break
             }
             assignments[t.hash] = nil
