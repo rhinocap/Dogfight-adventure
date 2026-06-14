@@ -7,114 +7,122 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		011DA1962AAEE385C4D2F739 /* PlayerAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD66E607ABC9EF58D9973AB /* PlayerAircraft.swift */; };
-		103FC5A0CE1E73D50B43D47B /* FlightHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B375440AD6931330018A38A /* FlightHUD.swift */; };
-		10B82C255114CD34842C421A /* bay_texture.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D29500AAC4ED7B8573FF3228 /* bay_texture.jpg */; };
-		152F8CB48829CC89B04DD80C /* bay_meta.json in Resources */ = {isa = PBXBuildFile; fileRef = 205557B62112394ADC84BEB5 /* bay_meta.json */; };
-		15F372BBD06C9BD41603F8A8 /* WorldBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2601FF1049AB06840B45261 /* WorldBuilder.swift */; };
-		211160101BC34C5495492BA2 /* bay_heightmap.f32 in Resources */ = {isa = PBXBuildFile; fileRef = 1D0415B631B1E46532BC5AE9 /* bay_heightmap.f32 */; };
-		47C6541A8A04C54E281B2D9F /* EnemyAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E0F9DA9EE82AB4C6FB500C /* EnemyAircraft.swift */; };
-		5315BF6D8CC3E83919C81F70 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DDA1EE1AD99EC93901AD27D /* GameViewController.swift */; };
-		88C6A885D2A6A97A711F8120 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5EC1FC55A158EFA774C5284E /* Foundation.framework */; };
-		8F5BE990AB1A4D48CE2DE94F /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FC7BC00984CD0AF685EA8D /* MathUtils.swift */; };
-		C08D9DDC3E72075A4577E114 /* WeaponSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE688A4DF64CAB66719DE45D /* WeaponSystem.swift */; };
-		C571C4A800FA0EC17767814E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D19686CC51FC252865673E24 /* Assets.xcassets */; };
-		C78224F3711ED25CFA27219A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2EC636D6A29E067B9EC930 /* AppDelegate.swift */; };
-		CE47C5953F1AE11B587BC6B0 /* AircraftFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9539EFDB6845FE65142A1479 /* AircraftFactory.swift */; };
-		DAED55A35D625015713D4F38 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD26972B8A46F6649895953 /* HomeViewController.swift */; };
+		15BA727B21FC065543A137BE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4598B467D37CC0964AA32F57 /* Foundation.framework */; };
+		235B23ABA4212ED4244A87E9 /* FlightHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9110DFEB6F615353D71B02C /* FlightHUD.swift */; };
+		2C7F34831D997DB12F17C43E /* bay_texture.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CFF996B1578C9A5A4F2CD99C /* bay_texture.jpg */; };
+		4ACBBF3EF4EF7B060E52DB6B /* AircraftFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E29229A4C7C570DAF1600F3 /* AircraftFactory.swift */; };
+		5CE1792CBB82D502FE3BFA4A /* DogfightLaunchOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE4455858B0426E7D9C9638 /* DogfightLaunchOptions.swift */; };
+		903EE79F34D9974C1997209C /* PlayerAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8178AC7081603C659472617D /* PlayerAircraft.swift */; };
+		90A2A677AFEE45A969FE2AB7 /* LocalDogfightManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3962117E705FDE1E7443B2 /* LocalDogfightManager.swift */; };
+		9EC284E26491326C7E07E154 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB66412B1B5FCCD84BC89601 /* Assets.xcassets */; };
+		A7F9F66CF8A249855D483F9C /* bay_meta.json in Resources */ = {isa = PBXBuildFile; fileRef = F3F6C2E52B62720CE691F6C3 /* bay_meta.json */; };
+		B87AC4D4A59E23AE498DA68C /* bay_heightmap.f32 in Resources */ = {isa = PBXBuildFile; fileRef = D80CC7539A741702D91ADE6E /* bay_heightmap.f32 */; };
+		BB65A8F4807EC83B0B456737 /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 935E587D0E948A5143DACE8E /* MathUtils.swift */; };
+		BDB509A2D59BD8A8E4EB9BC4 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6905462EF0D269816CD64674 /* GameViewController.swift */; };
+		C0B972F02EBD28E6F173EC3F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F998C021E33DF6113FC0E6F0 /* AppDelegate.swift */; };
+		CF07761D06A1A772CFCF5588 /* WeaponSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D06B7A12A4F55A5E6CE1E39 /* WeaponSystem.swift */; };
+		D3DA97C09B96A4E5E221E405 /* EnemyAircraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6FEE64E7B5E114B78FE10D /* EnemyAircraft.swift */; };
+		DA038747B9425B2D5757059E /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F52674636EE1F74378AD18E9 /* HomeViewController.swift */; };
+		DD84E0DF0754DB89D814D6FF /* WorldBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3977C5E67FB19D8878D3CC8B /* WorldBuilder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1D0415B631B1E46532BC5AE9 /* bay_heightmap.f32 */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_heightmap.f32; sourceTree = "<group>"; };
-		205557B62112394ADC84BEB5 /* bay_meta.json */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_meta.json; sourceTree = "<group>"; };
-		2DDA1EE1AD99EC93901AD27D /* GameViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
-		3AD66E607ABC9EF58D9973AB /* PlayerAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerAircraft.swift; sourceTree = "<group>"; };
-		3B375440AD6931330018A38A /* FlightHUD.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlightHUD.swift; sourceTree = "<group>"; };
-		48E0F9DA9EE82AB4C6FB500C /* EnemyAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnemyAircraft.swift; sourceTree = "<group>"; };
-		5B2EC636D6A29E067B9EC930 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		5EC1FC55A158EFA774C5284E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		767DB50B322BAC8C99CF84B2 /* DogfightAdventures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogfightAdventures.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8DD26972B8A46F6649895953 /* HomeViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
-		9539EFDB6845FE65142A1479 /* AircraftFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AircraftFactory.swift; sourceTree = "<group>"; };
-		B0FC7BC00984CD0AF685EA8D /* MathUtils.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MathUtils.swift; sourceTree = "<group>"; };
-		CE688A4DF64CAB66719DE45D /* WeaponSystem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeaponSystem.swift; sourceTree = "<group>"; };
-		D19686CC51FC252865673E24 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		D29500AAC4ED7B8573FF3228 /* bay_texture.jpg */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_texture.jpg; sourceTree = "<group>"; };
-		E2601FF1049AB06840B45261 /* WorldBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorldBuilder.swift; sourceTree = "<group>"; };
+		2C6FEE64E7B5E114B78FE10D /* EnemyAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnemyAircraft.swift; sourceTree = "<group>"; };
+		34857A1F06AD380E30E48D1B /* DogfightAdventures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogfightAdventures.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3977C5E67FB19D8878D3CC8B /* WorldBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorldBuilder.swift; sourceTree = "<group>"; };
+		4598B467D37CC0964AA32F57 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		4C3962117E705FDE1E7443B2 /* LocalDogfightManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalDogfightManager.swift; sourceTree = "<group>"; };
+		545832C3B10AA186B1C03C2E /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = DogfightAdventures/Info.plist; sourceTree = "<group>"; };
+		6905462EF0D269816CD64674 /* GameViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
+		6CE4455858B0426E7D9C9638 /* DogfightLaunchOptions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DogfightLaunchOptions.swift; sourceTree = "<group>"; };
+		6D06B7A12A4F55A5E6CE1E39 /* WeaponSystem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeaponSystem.swift; sourceTree = "<group>"; };
+		6E29229A4C7C570DAF1600F3 /* AircraftFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AircraftFactory.swift; sourceTree = "<group>"; };
+		8178AC7081603C659472617D /* PlayerAircraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerAircraft.swift; sourceTree = "<group>"; };
+		935E587D0E948A5143DACE8E /* MathUtils.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MathUtils.swift; sourceTree = "<group>"; };
+		AB66412B1B5FCCD84BC89601 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CFF996B1578C9A5A4F2CD99C /* bay_texture.jpg */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_texture.jpg; sourceTree = "<group>"; };
+		D80CC7539A741702D91ADE6E /* bay_heightmap.f32 */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_heightmap.f32; sourceTree = "<group>"; };
+		F3F6C2E52B62720CE691F6C3 /* bay_meta.json */ = {isa = PBXFileReference; includeInIndex = 1; path = bay_meta.json; sourceTree = "<group>"; };
+		F52674636EE1F74378AD18E9 /* HomeViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		F9110DFEB6F615353D71B02C /* FlightHUD.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlightHUD.swift; sourceTree = "<group>"; };
+		F998C021E33DF6113FC0E6F0 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		41FABDB43A3FA1C2313C2170 /* Frameworks */ = {
+		ACD78B6E906DDF07AB90C279 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				88C6A885D2A6A97A711F8120 /* Foundation.framework in Frameworks */,
+				15BA727B21FC065543A137BE /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3F3A811A23D9416F11776C6A /* Resources */ = {
+		467DC287F56B1B0AE0A19A19 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D19686CC51FC252865673E24 /* Assets.xcassets */,
-				205557B62112394ADC84BEB5 /* bay_meta.json */,
-				1D0415B631B1E46532BC5AE9 /* bay_heightmap.f32 */,
-				D29500AAC4ED7B8573FF3228 /* bay_texture.jpg */,
+				795F9A678097A1563D54B4D2 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		795F9A678097A1563D54B4D2 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				4598B467D37CC0964AA32F57 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		9FE24BAB2CB9EFA367C8E093 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AB66412B1B5FCCD84BC89601 /* Assets.xcassets */,
+				F3F6C2E52B62720CE691F6C3 /* bay_meta.json */,
+				D80CC7539A741702D91ADE6E /* bay_heightmap.f32 */,
+				CFF996B1578C9A5A4F2CD99C /* bay_texture.jpg */,
 			);
 			name = Resources;
 			path = DogfightAdventures/Resources;
 			sourceTree = "<group>";
 		};
-		4B89ABE9227DBE112E5049D8 = {
+		AB2179B2C135BDC7C361B932 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				FF732F0C089359F4C163BEDD /* Products */,
-				B05A158BE5B3B1E1412C58C8 /* Frameworks */,
-				DB5B4B9956E90514F9057D13 /* Sources */,
-				3F3A811A23D9416F11776C6A /* Resources */,
-			);
-			sourceTree = "<group>";
-		};
-		B05A158BE5B3B1E1412C58C8 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				B19F0E46BFEB3EDC535DAF1A /* iOS */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		B19F0E46BFEB3EDC535DAF1A /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				5EC1FC55A158EFA774C5284E /* Foundation.framework */,
-			);
-			name = iOS;
-			sourceTree = "<group>";
-		};
-		DB5B4B9956E90514F9057D13 /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				9539EFDB6845FE65142A1479 /* AircraftFactory.swift */,
-				5B2EC636D6A29E067B9EC930 /* AppDelegate.swift */,
-				48E0F9DA9EE82AB4C6FB500C /* EnemyAircraft.swift */,
-				3B375440AD6931330018A38A /* FlightHUD.swift */,
-				2DDA1EE1AD99EC93901AD27D /* GameViewController.swift */,
-				8DD26972B8A46F6649895953 /* HomeViewController.swift */,
-				B0FC7BC00984CD0AF685EA8D /* MathUtils.swift */,
-				3AD66E607ABC9EF58D9973AB /* PlayerAircraft.swift */,
-				CE688A4DF64CAB66719DE45D /* WeaponSystem.swift */,
-				E2601FF1049AB06840B45261 /* WorldBuilder.swift */,
+				6E29229A4C7C570DAF1600F3 /* AircraftFactory.swift */,
+				F998C021E33DF6113FC0E6F0 /* AppDelegate.swift */,
+				6CE4455858B0426E7D9C9638 /* DogfightLaunchOptions.swift */,
+				2C6FEE64E7B5E114B78FE10D /* EnemyAircraft.swift */,
+				F9110DFEB6F615353D71B02C /* FlightHUD.swift */,
+				6905462EF0D269816CD64674 /* GameViewController.swift */,
+				F52674636EE1F74378AD18E9 /* HomeViewController.swift */,
+				4C3962117E705FDE1E7443B2 /* LocalDogfightManager.swift */,
+				935E587D0E948A5143DACE8E /* MathUtils.swift */,
+				8178AC7081603C659472617D /* PlayerAircraft.swift */,
+				6D06B7A12A4F55A5E6CE1E39 /* WeaponSystem.swift */,
+				3977C5E67FB19D8878D3CC8B /* WorldBuilder.swift */,
 			);
 			name = Sources;
 			path = DogfightAdventures/Sources;
 			sourceTree = "<group>";
 		};
-		FF732F0C089359F4C163BEDD /* Products */ = {
+		E1551CEFAE111FCE932E8897 = {
 			isa = PBXGroup;
 			children = (
-				767DB50B322BAC8C99CF84B2 /* DogfightAdventures.app */,
+				FF99FBA156ED099621E68CBB /* Products */,
+				467DC287F56B1B0AE0A19A19 /* Frameworks */,
+				AB2179B2C135BDC7C361B932 /* Sources */,
+				545832C3B10AA186B1C03C2E /* Info.plist */,
+				9FE24BAB2CB9EFA367C8E093 /* Resources */,
+			);
+			sourceTree = "<group>";
+		};
+		FF99FBA156ED099621E68CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				34857A1F06AD380E30E48D1B /* DogfightAdventures.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,13 +130,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AD51425DAC89A963F96F27C9 /* DogfightAdventures */ = {
+		92D8CB598240C8F63C4AB69C /* DogfightAdventures */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 87A9508B191849C881BBFB16 /* Build configuration list for PBXNativeTarget "DogfightAdventures" */;
+			buildConfigurationList = C3DCF1F70B1F8704BB62CC00 /* Build configuration list for PBXNativeTarget "DogfightAdventures" */;
 			buildPhases = (
-				689B020ADF747B03B62436F9 /* Sources */,
-				41FABDB43A3FA1C2313C2170 /* Frameworks */,
-				1642B7BA7EA54C028289A99C /* Resources */,
+				61D02466FCBB504CA9B0FC0B /* Sources */,
+				ACD78B6E906DDF07AB90C279 /* Frameworks */,
+				D4CB375681DE01D8A9AA0E66 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -136,19 +144,19 @@
 			);
 			name = DogfightAdventures;
 			productName = DogfightAdventures;
-			productReference = 767DB50B322BAC8C99CF84B2 /* DogfightAdventures.app */;
+			productReference = 34857A1F06AD380E30E48D1B /* DogfightAdventures.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		487F34DECD417AF7EA789BAA /* Project object */ = {
+		65C4464651C37C02D79AD74A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 			};
-			buildConfigurationList = 24395E292594DFEE7550846E /* Build configuration list for PBXProject "DogfightAdventures" */;
+			buildConfigurationList = 7D596017180CA3DC890CE541 /* Build configuration list for PBXProject "DogfightAdventures" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -156,54 +164,56 @@
 				en,
 				Base,
 			);
-			mainGroup = 4B89ABE9227DBE112E5049D8;
+			mainGroup = E1551CEFAE111FCE932E8897;
 			minimizedProjectReferenceProxies = 0;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = FF732F0C089359F4C163BEDD /* Products */;
+			productRefGroup = FF99FBA156ED099621E68CBB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AD51425DAC89A963F96F27C9 /* DogfightAdventures */,
+				92D8CB598240C8F63C4AB69C /* DogfightAdventures */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		1642B7BA7EA54C028289A99C /* Resources */ = {
+		D4CB375681DE01D8A9AA0E66 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C571C4A800FA0EC17767814E /* Assets.xcassets in Resources */,
-				152F8CB48829CC89B04DD80C /* bay_meta.json in Resources */,
-				211160101BC34C5495492BA2 /* bay_heightmap.f32 in Resources */,
-				10B82C255114CD34842C421A /* bay_texture.jpg in Resources */,
+				9EC284E26491326C7E07E154 /* Assets.xcassets in Resources */,
+				A7F9F66CF8A249855D483F9C /* bay_meta.json in Resources */,
+				B87AC4D4A59E23AE498DA68C /* bay_heightmap.f32 in Resources */,
+				2C7F34831D997DB12F17C43E /* bay_texture.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		689B020ADF747B03B62436F9 /* Sources */ = {
+		61D02466FCBB504CA9B0FC0B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE47C5953F1AE11B587BC6B0 /* AircraftFactory.swift in Sources */,
-				C78224F3711ED25CFA27219A /* AppDelegate.swift in Sources */,
-				47C6541A8A04C54E281B2D9F /* EnemyAircraft.swift in Sources */,
-				103FC5A0CE1E73D50B43D47B /* FlightHUD.swift in Sources */,
-				5315BF6D8CC3E83919C81F70 /* GameViewController.swift in Sources */,
-				DAED55A35D625015713D4F38 /* HomeViewController.swift in Sources */,
-				8F5BE990AB1A4D48CE2DE94F /* MathUtils.swift in Sources */,
-				011DA1962AAEE385C4D2F739 /* PlayerAircraft.swift in Sources */,
-				C08D9DDC3E72075A4577E114 /* WeaponSystem.swift in Sources */,
-				15F372BBD06C9BD41603F8A8 /* WorldBuilder.swift in Sources */,
+				4ACBBF3EF4EF7B060E52DB6B /* AircraftFactory.swift in Sources */,
+				C0B972F02EBD28E6F173EC3F /* AppDelegate.swift in Sources */,
+				5CE1792CBB82D502FE3BFA4A /* DogfightLaunchOptions.swift in Sources */,
+				D3DA97C09B96A4E5E221E405 /* EnemyAircraft.swift in Sources */,
+				235B23ABA4212ED4244A87E9 /* FlightHUD.swift in Sources */,
+				BDB509A2D59BD8A8E4EB9BC4 /* GameViewController.swift in Sources */,
+				DA038747B9425B2D5757059E /* HomeViewController.swift in Sources */,
+				90A2A677AFEE45A969FE2AB7 /* LocalDogfightManager.swift in Sources */,
+				BB65A8F4807EC83B0B456737 /* MathUtils.swift in Sources */,
+				903EE79F34D9974C1997209C /* PlayerAircraft.swift in Sources */,
+				CF07761D06A1A772CFCF5588 /* WeaponSystem.swift in Sources */,
+				DD84E0DF0754DB89D814D6FF /* WorldBuilder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		0BDB7B878A2A7ECB5C5D717E /* Release */ = {
+		620E6D5679C993C4EF6BF82E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -213,14 +223,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8W34JFWLTB;
 				ENABLE_PREVIEWS = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Dogfight;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIRequiresFullScreen = YES;
-				INFOPLIST_KEY_UIStatusBarHidden = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				"INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DogfightAdventures/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
@@ -234,7 +238,31 @@
 			};
 			name = Release;
 		};
-		5B4B31154309E0F9EEC12D8B /* Debug */ = {
+		A926BF6A37A2CA301B0074C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8W34JFWLTB;
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DogfightAdventures/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cunliffe.dogfightadventures;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D91E6D9522A749D9CBDEB812 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -295,7 +323,7 @@
 			};
 			name = Debug;
 		};
-		861D37571DF268464F84973A /* Release */ = {
+		DF4C50B5256CD96570D78EA7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -349,58 +377,28 @@
 			};
 			name = Release;
 		};
-		CE6B9A837B6C232CB174E94C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8W34JFWLTB;
-				ENABLE_PREVIEWS = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Dogfight;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIRequiresFullScreen = YES;
-				INFOPLIST_KEY_UIStatusBarHidden = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				"INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cunliffe.dogfightadventures;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		24395E292594DFEE7550846E /* Build configuration list for PBXProject "DogfightAdventures" */ = {
+		7D596017180CA3DC890CE541 /* Build configuration list for PBXProject "DogfightAdventures" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5B4B31154309E0F9EEC12D8B /* Debug */,
-				861D37571DF268464F84973A /* Release */,
+				D91E6D9522A749D9CBDEB812 /* Debug */,
+				DF4C50B5256CD96570D78EA7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		87A9508B191849C881BBFB16 /* Build configuration list for PBXNativeTarget "DogfightAdventures" */ = {
+		C3DCF1F70B1F8704BB62CC00 /* Build configuration list for PBXNativeTarget "DogfightAdventures" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				0BDB7B878A2A7ECB5C5D717E /* Release */,
-				CE6B9A837B6C232CB174E94C /* Debug */,
+				620E6D5679C993C4EF6BF82E /* Release */,
+				A926BF6A37A2CA301B0074C3 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 487F34DECD417AF7EA789BAA /* Project object */;
+	rootObject = 65C4464651C37C02D79AD74A /* Project object */;
 }

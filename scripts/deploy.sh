@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Build (CPU-capped) + sign + install + launch on a paired iOS device.
-# Usage: bash scripts/deploy.sh <device-name|udid>
+# Usage: bash scripts/deploy.sh <device-name|udid> [launch-arg ...]
 #
 # Signing is headless via an App Store Connect API key (no Xcode GUI token
 # needed): it registers the device with the developer account, then xcodebuild
@@ -12,7 +12,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-ARG="${1:?usage: deploy.sh <device-name|udid>}"
+ARG="${1:?usage: deploy.sh <device-name|udid> [launch-arg ...]}"
+shift
+LAUNCH_ARGS=("$@")
 BUNDLE="com.cunliffe.dogfightadventures"
 TEAM="${DEVELOPMENT_TEAM:-8W34JFWLTB}"
 KEYID="${ASC_KEY_ID:-7GLPKRQCL3}"
@@ -38,6 +40,8 @@ PY
 )
 echo "▶︎ Target: $NAME [$UDID]"
 
+bash scripts/preflight_devices.sh "$UDID"
+
 echo "▶︎ Registering device with App Store Connect…"
 node scripts/register_devices.mjs "$KEYID" "$NAME:$UDID"
 
@@ -54,5 +58,9 @@ APP=$(find build/DerivedData/Build/Products/Release-iphoneos -name "*.app" -maxd
 echo "▶︎ Installing $APP"
 xcrun devicectl device install app --device "$UDID" "$APP"
 echo "▶︎ Launching…"
-xcrun devicectl device process launch --device "$UDID" "$BUNDLE"
+if [[ "${#LAUNCH_ARGS[@]}" -gt 0 ]]; then
+  xcrun devicectl device process launch --terminate-existing --device "$UDID" "$BUNDLE" "${LAUNCH_ARGS[@]}"
+else
+  xcrun devicectl device process launch --terminate-existing --device "$UDID" "$BUNDLE"
+fi
 echo "✓ Launched on $NAME"

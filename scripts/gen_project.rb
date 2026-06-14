@@ -20,6 +20,8 @@ Dir.glob(File.join(ROOT, 'DogfightAdventures/Sources/*.swift')).sort.each do |f|
   target.add_file_references([ref])
 end
 
+project.main_group.new_file('DogfightAdventures/Info.plist')
+
 # App icon / asset catalog + baked Bay data resources.
 res_group = project.main_group.new_group('Resources', 'DogfightAdventures/Resources')
 target.add_resources([res_group.new_reference('Assets.xcassets')])
@@ -35,7 +37,8 @@ target.build_configurations.each do |config|
   s['SWIFT_VERSION'] = '5.0'
   s['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.cunliffe.dogfightadventures'
   s['PRODUCT_NAME'] = '$(TARGET_NAME)'
-  s['GENERATE_INFOPLIST_FILE'] = 'YES'
+  s['GENERATE_INFOPLIST_FILE'] = 'NO'
+  s['INFOPLIST_FILE'] = 'DogfightAdventures/Info.plist'
   s['TARGETED_DEVICE_FAMILY'] = '1,2'
   s['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
   s['SWIFT_EMIT_LOC_STRINGS'] = 'YES'
@@ -45,14 +48,6 @@ target.build_configurations.each do |config|
   s['CODE_SIGN_STYLE'] = 'Automatic'
   s['DEVELOPMENT_TEAM'] = '8W34JFWLTB'
   s['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
-  # Info.plist synthesized keys.
-  s['INFOPLIST_KEY_CFBundleDisplayName'] = 'Dogfight'
-  s['INFOPLIST_KEY_UIStatusBarHidden'] = 'YES'
-  s['INFOPLIST_KEY_UIRequiresFullScreen'] = 'YES'
-  s['INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents'] = 'YES'
-  s['INFOPLIST_KEY_UILaunchScreen_Generation'] = 'YES'
-  s['INFOPLIST_KEY_UISupportedInterfaceOrientations'] = orientations
-  s['INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad'] = orientations
 end
 
 project.save

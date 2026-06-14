@@ -45,6 +45,8 @@ final class FlightHUD: UIView {
     private let altLabel = HUDLabel()
     private let healthLabel = HUDLabel()
     private let enemiesLabel = HUDLabel()
+    private let networkLabel = HUDLabel(size: 14, weight: .semibold)
+    private let peerLabel = HUDLabel(size: 15, weight: .semibold)
     private let banner = HUDLabel(size: 34, weight: .bold)
     private let hint = HUDLabel(size: 14, weight: .regular)
     private let fireLabel = HUDLabel(size: 16, weight: .bold)
@@ -99,13 +101,17 @@ final class FlightHUD: UIView {
     }
 
     private func setupLabels() {
-        [speedLabel, altLabel, healthLabel, enemiesLabel, banner, hint,
+        [speedLabel, altLabel, healthLabel, enemiesLabel, networkLabel, peerLabel, banner, hint,
          fireLabel, aimLabel, viewLabel].forEach { addSubview($0) }
         banner.textAlignment = .center
         banner.alpha = 0
         hint.textAlignment = .center
         hint.alpha = 0.85
         hint.text = "Right thumb: steer  ·  Left: throttle  ·  FIRE shoots  ·  AIM slows time  ·  VIEW changes camera"
+        networkLabel.textAlignment = .center
+        networkLabel.alpha = 0.92
+        peerLabel.textAlignment = .right
+        peerLabel.isHidden = true
         for l in [fireLabel, aimLabel, viewLabel] { l.textAlignment = .center }
         fireLabel.text = "FIRE"; aimLabel.text = "AIM"; viewLabel.text = "VIEW"
     }
@@ -147,6 +153,8 @@ final class FlightHUD: UIView {
         healthLabel.textAlignment = .right
         enemiesLabel.frame = CGRect(x: b.maxX - 300, y: 66, width: 260, height: 28)
         enemiesLabel.textAlignment = .right
+        peerLabel.frame = CGRect(x: b.maxX - 360, y: 98, width: 320, height: 24)
+        networkLabel.frame = CGRect(x: b.midX - 260, y: 50, width: 520, height: 20)
         banner.frame = CGRect(x: b.midX - 320, y: b.midY - 140, width: 640, height: 48)
         hint.frame = CGRect(x: b.midX - 300, y: 24, width: 600, height: 20)
     }
@@ -194,6 +202,19 @@ final class FlightHUD: UIView {
         healthLabel.textColor = health < 30
             ? UIColor(red: 1, green: 0.4, blue: 0.35, alpha: 1) : .white
         enemiesLabel.text = "BANDITS  \(enemies)"
+    }
+
+    func setMultiplayerStatus(_ status: String) {
+        networkLabel.text = status
+        let connected = status.lowercased().contains("connected")
+        networkLabel.textColor = connected
+            ? UIColor(red: 0.45, green: 1.0, blue: 0.68, alpha: 1)
+            : UIColor(white: 1, alpha: 0.9)
+    }
+
+    func setPeerReadout(_ text: String) {
+        peerLabel.text = text
+        peerLabel.isHidden = text.isEmpty
     }
 
     func showBanner(_ text: String, color: UIColor = .white, persist: Bool = false) {

@@ -13,6 +13,7 @@ import simd
 
 final class GameViewController: UIViewController {
 
+    private let launchOptions: DogfightLaunchOptions
     private let scnView = SCNView()
     private let scene = SCNScene()
     private let cameraNode = SCNNode()
@@ -25,8 +26,14 @@ final class GameViewController: UIViewController {
     private var displayLink: CADisplayLink?
     private var lastTime: CFTimeInterval = 0
     private var playerFireCooldown: Float = 0
+    private var localShotID = 0
     private var camPos = V3(0, 500, 3000)
     private var gameOver = false
+    private let localNetwork = LocalDogfightManager()
+    private var sendAccumulator: Float = 0
+    private var peerStates: [String: PeerAircraftState] = [:]
+    private var peerNodes: [String: SCNNode] = [:]
+    private var lastPeerShotIDs: [String: Int] = [:]
 
     private enum CameraMode { case chase, cockpit }
     private var cameraMode: CameraMode = .chase
@@ -34,13 +41,26 @@ final class GameViewController: UIViewController {
     private var currentFov: Double = 65
     private var spawn: (position: V3, heading: simd_quatf) = (V3(0, 450, 2600), simd_quatf(angle: 0, axis: WORLD_UP))
 
-    private let enemyTarget = 4
+    private var enemyTarget: Int { launchOptions.mode == .solo ? 4 : 3 }
     private let playerDamage: Float = 14
     private let enemyDamage: Float = 7
+    private let peerDamage: Float = 12
 
     override var prefersStatusBarHidden: Bool { true }
     override var prefersHomeIndicatorAutoHidden: Bool { true }
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { .landscape }
+
+    init(launchOptions: DogfightLaunchOptions = .solo) {
+        self.launchOptions = launchOptions
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    deinit {
+        displayLink?.invalidate()
+        localNetwork.stop()
+    }
 
     // MARK: Lifecycle
 
@@ -50,6 +70,7 @@ final class GameViewController: UIViewController {
         setupCamera()
         setupGame()
         setupHUD()
+        setupMultiplayer()
         startLoop()
     }
 
@@ -92,6 +113,12 @@ final class GameViewController: UIViewController {
         view.addSubview(hud)
         hud.onToggleView = { [weak self] in self?.toggleView() }
         hud.showBanner("DOGFIGHT — BAY AREA", color: .white)
+        hud.setMultiplayerStatus(launchOptions.mode == .solo ? "" : "Starting Wi-Fi multiplayer...")
+    }
+
+    private func setupMultiplayer() {
+        localNetwork.delegate = self
+        localNetwork.start(mode: launchOptions.mode)
     }
 
     private func toggleView() {
@@ -134,6 +161,7 @@ final class GameViewController: UIViewController {
         // and view stay smooth (use real dt).
         let simDt = hud.aiming ? dt * aimTimeScale : dt
         if !gameOver { updateGame(dt: simDt) }
+        tickMultiplayer(dt: dt)
         updateCamera(dt: dt)
         updateReadouts()
     }
@@ -149,6 +177,7 @@ final class GameViewController: UIViewController {
         playerFireCooldown -= dt
         if hud.firing, player.isAlive, playerFireCooldown <= 0 {
             playerFireCooldown = 0.11
+            localShotID += 1
             let muzzle = player.position + player.forward * 10
             weapons.fire(from: muzzle, dir: player.forward,
                          inheritedVelocity: player.velocity,
@@ -246,6 +275,88 @@ final class GameViewController: UIViewController {
         hud.setReadouts(speedKt: speedKt, altitudeFt: altFt,
                         health: Int(max(0, player.health)),
                         enemies: enemies.count)
+        updatePeerReadout()
+    }
+
+    private func updatePeerReadout() {
+        guard let state = peerStates.values.first else {
+            hud.setPeerReadout("")
+            return
+        }
+        let peerPosition = V3(state.px, state.py, state.pz)
+        let distanceFt = Int(simd_distance(peerPosition, player.position) * 3.28084)
+        hud.setPeerReadout("WINGMAN  \(Int(max(0, state.health)))%  \(distanceFt) ft")
+    }
+
+    private func tickMultiplayer(dt: Float) {
+        guard launchOptions.mode != .solo else { return }
+        sendAccumulator += dt
+        guard sendAccumulator >= 1.0 / 15.0 else { return }
+        sendAccumulator = 0
+        sendLocalState()
+    }
+
+    private func sendLocalState() {
+        let q = player.orientation
+        let state = PeerAircraftState(
+            playerID: localNetwork.localPlayerID,
+            displayName: UIDevice.current.name,
+            px: player.position.x,
+            py: player.position.y,
+            pz: player.position.z,
+            qx: q.imag.x,
+            qy: q.imag.y,
+            qz: q.imag.z,
+            qw: q.real,
+            speedKt: Int(player.speed * 1.94384),
+            health: player.health,
+            shotID: localShotID,
+            isAlive: player.isAlive
+        )
+        localNetwork.send(state: state)
+    }
+
+    private func applyPeerState(_ state: PeerAircraftState) {
+        guard state.playerID != localNetwork.localPlayerID else { return }
+        let previousHealth = peerStates[state.playerID]?.health ?? state.health
+        peerStates[state.playerID] = state
+
+        let node = peerNodes[state.playerID] ?? makePeerNode(for: state)
+        peerNodes[state.playerID] = node
+        node.simdPosition = V3(state.px, state.py, state.pz)
+        node.simdOrientation = simd_quatf(ix: state.qx, iy: state.qy, iz: state.qz, r: state.qw)
+        node.opacity = state.isAlive ? 1.0 : 0.28
+
+        let lastShot = lastPeerShotIDs[state.playerID] ?? state.shotID
+        if state.shotID > lastShot {
+            firePeerShot(from: state)
+        }
+        lastPeerShotIDs[state.playerID] = state.shotID
+
+        if previousHealth > 0, state.health <= 0 {
+            spawnExplosion(at: V3(state.px, state.py, state.pz))
+            hud.showBanner("\(state.displayName.uppercased()) DOWN",
+                           color: UIColor(red: 0.45, green: 1.0, blue: 0.68, alpha: 1))
+        }
+    }
+
+    private func makePeerNode(for state: PeerAircraftState) -> SCNNode {
+        let node = AircraftFactory.makeJet(
+            bodyColor: UIColor(red: 0.10, green: 0.55, blue: 0.85, alpha: 1),
+            accent: UIColor(red: 0.20, green: 1.00, blue: 0.62, alpha: 1))
+        node.name = "peer-\(state.playerID)"
+        scene.rootNode.addChildNode(node)
+        return node
+    }
+
+    private func firePeerShot(from state: PeerAircraftState) {
+        let orientation = simd_quatf(ix: state.qx, iy: state.qy, iz: state.qz, r: state.qw)
+        let forward = orientation.forward
+        let speedMps = Float(state.speedKt) / 1.94384
+        let origin = V3(state.px, state.py, state.pz) + forward * 10
+        weapons.fire(from: origin, dir: forward,
+                     inheritedVelocity: forward * speedMps,
+                     friendly: false, damage: peerDamage)
     }
 
     // MARK: Game over / restart
@@ -274,9 +385,20 @@ final class GameViewController: UIViewController {
         player.node.removeFromParentNode()
         player = PlayerAircraft(spawn: spawn.position, heading: spawn.heading)
         scene.rootNode.addChildNode(player.node)
+        localShotID = 0
         spawnEnemies(enemyTarget)
         camPos = player.position - player.forward * 24 + WORLD_UP * 8
         gameOver = false
         hud.hideBanner()
+    }
+}
+
+extension GameViewController: LocalDogfightManagerDelegate {
+    func localDogfightManager(_ manager: LocalDogfightManager, didUpdateStatus status: String) {
+        hud.setMultiplayerStatus(status)
+    }
+
+    func localDogfightManager(_ manager: LocalDogfightManager, didReceive state: PeerAircraftState) {
+        applyPeerState(state)
     }
 }

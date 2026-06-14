@@ -18,7 +18,9 @@ final class HomeViewController: UIViewController {
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let tagline = UILabel()
-    private let playButton = UIButton(type: .custom)
+    private let soloButton = UIButton(type: .custom)
+    private let hostButton = UIButton(type: .custom)
+    private let joinButton = UIButton(type: .custom)
 
     override var prefersStatusBarHidden: Bool { true }
     override var prefersHomeIndicatorAutoHidden: Bool { true }
@@ -77,19 +79,28 @@ final class HomeViewController: UIViewController {
         tagline.textAlignment = .center
         view.addSubview(tagline)
 
-        // PLAY button.
-        playButton.setTitle("START", for: .normal)
-        playButton.titleLabel?.font = .systemFont(ofSize: 30, weight: .heavy)
-        playButton.setTitleColor(.white, for: .normal)
-        playButton.backgroundColor = UIColor(red: 1.0, green: 0.45, blue: 0.2, alpha: 1)
-        playButton.layer.cornerRadius = 36
-        playButton.layer.shadowColor = UIColor.black.cgColor
-        playButton.layer.shadowOpacity = 0.3; playButton.layer.shadowRadius = 12
-        playButton.layer.shadowOffset = CGSize(width: 0, height: 8)
-        playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
-        playButton.addTarget(self, action: #selector(pressDown), for: .touchDown)
-        playButton.addTarget(self, action: #selector(pressUp), for: [.touchUpOutside, .touchCancel])
-        view.addSubview(playButton)
+        setupButton(soloButton, title: "SOLO", color: UIColor(red: 1.0, green: 0.45, blue: 0.2, alpha: 1),
+                    action: #selector(playSolo))
+        setupButton(hostButton, title: "HOST WIFI", color: UIColor(red: 0.18, green: 0.56, blue: 1.0, alpha: 1),
+                    action: #selector(hostWifi))
+        setupButton(joinButton, title: "JOIN WIFI", color: UIColor(red: 0.12, green: 0.70, blue: 0.45, alpha: 1),
+                    action: #selector(joinWifi))
+    }
+
+    private func setupButton(_ button: UIButton, title: String, color: UIColor, action: Selector) {
+        button.setTitle(title, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 24, weight: .heavy)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = color
+        button.layer.cornerRadius = 30
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.28
+        button.layer.shadowRadius = 12
+        button.layer.shadowOffset = CGSize(width: 0, height: 8)
+        button.addTarget(self, action: action, for: .touchUpInside)
+        button.addTarget(self, action: #selector(pressDown(_:)), for: .touchDown)
+        button.addTarget(self, action: #selector(pressUp(_:)), for: [.touchUpOutside, .touchCancel])
+        view.addSubview(button)
     }
 
     override func viewDidLayoutSubviews() {
@@ -109,8 +120,15 @@ final class HomeViewController: UIViewController {
         subtitleLabel.frame = CGRect(x: 0, y: b.height * 0.44 + 76, width: b.width, height: 34)
         tagline.frame = CGRect(x: 0, y: b.height * 0.44 + 116, width: b.width, height: 22)
 
-        let pw: CGFloat = 240, ph: CGFloat = 72
-        playButton.frame = CGRect(x: b.midX - pw / 2, y: b.height * 0.80, width: pw, height: ph)
+        let gap: CGFloat = 16
+        let ph: CGFloat = 60
+        let available = b.width - 72
+        let pw = min(CGFloat(220), (available - gap * 2) / 3)
+        let total = pw * 3 + gap * 2
+        let y = b.height * 0.78
+        soloButton.frame = CGRect(x: b.midX - total / 2, y: y, width: pw, height: ph)
+        hostButton.frame = CGRect(x: soloButton.frame.maxX + gap, y: y, width: pw, height: ph)
+        joinButton.frame = CGRect(x: hostButton.frame.maxX + gap, y: y, width: pw, height: ph)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -120,12 +138,12 @@ final class HomeViewController: UIViewController {
         bob.byValue = -16; bob.duration = 2.2; bob.autoreverses = true
         bob.repeatCount = .infinity; bob.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         jet.add(bob, forKey: "bob")
-        // PLAY pulse.
+        // Primary action pulse.
         let pulse = CABasicAnimation(keyPath: "transform.scale")
         pulse.fromValue = 1.0; pulse.toValue = 1.06; pulse.duration = 0.9
         pulse.autoreverses = true; pulse.repeatCount = .infinity
         pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        playButton.layer.add(pulse, forKey: "pulse")
+        hostButton.layer.add(pulse, forKey: "pulse")
         // Drift clouds.
         drift(cloud1, distance: 60, duration: 9)
         drift(cloud2, distance: 90, duration: 13)
@@ -140,15 +158,31 @@ final class HomeViewController: UIViewController {
 
     // MARK: Actions
 
-    @objc private func pressDown() {
-        UIView.animate(withDuration: 0.1) { self.playButton.transform = CGAffineTransform(scaleX: 0.94, y: 0.94) }
+    @objc private func pressDown(_ sender: UIButton) {
+        UIView.animate(withDuration: 0.1) {
+            sender.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+        }
     }
-    @objc private func pressUp() {
-        UIView.animate(withDuration: 0.1) { self.playButton.transform = .identity }
+    @objc private func pressUp(_ sender: UIButton) {
+        UIView.animate(withDuration: 0.1) {
+            sender.transform = .identity
+        }
     }
-    @objc private func play() {
-        pressUp()
-        let game = GameViewController()
+
+    @objc private func playSolo() {
+        launch(mode: .solo)
+    }
+
+    @objc private func hostWifi() {
+        launch(mode: .host)
+    }
+
+    @objc private func joinWifi() {
+        launch(mode: .joinNearby)
+    }
+
+    private func launch(mode: DogfightMultiplayerMode) {
+        let game = GameViewController(launchOptions: DogfightLaunchOptions(mode: mode))
         game.modalPresentationStyle = .fullScreen
         game.modalTransitionStyle = .crossDissolve
         present(game, animated: true)

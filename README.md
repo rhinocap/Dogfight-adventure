@@ -22,6 +22,9 @@ Swift + SceneKit, built for iPad (universal — runs on iPhone too), landscape.
 - **Dogfighting** — forward guns with tracers, simple pursue-and-shoot enemy AI
   that steers toward you and fires when you're in its cone. Explosions on kills,
   hull damage + red flash when hit, respawn on death, skies kept populated.
+- **Same-Wi-Fi multiplayer** — one iPhone/iPad can host and another can join on
+  the same local network. Devices exchange plane position, heading, health, and
+  gunfire with no internet server.
 
 **Out of scope (future versions, per the brief):** landing mechanics, scoring,
 additional maps.
@@ -36,6 +39,8 @@ DogfightAdventures/Sources/
   AircraftFactory.swift    Low-poly jet meshes + exhaust/explosion particles
   PlayerAircraft.swift     Arcade flight model
   EnemyAircraft.swift      Pursue-and-shoot AI
+  LocalDogfightManager.swift Bonjour/TCP same-network multiplayer transport
+  DogfightLaunchOptions.swift Solo/host/join launch modes for UI + scripts
   WeaponSystem.swift       Projectiles + hit detection
   FlightHUD.swift          Touch controls + heads-up display
   MathUtils.swift          simd helpers
@@ -77,6 +82,26 @@ xcrun simctl install booted build/DerivedData/Build/Products/Debug-iphonesimulat
 xcrun simctl launch booted com.cunliffe.dogfightadventures
 ```
 
+## Same-Wi-Fi multiplayer
+
+On the home screen:
+
+- `SOLO` starts one-player dogfighting.
+- `HOST WIFI` starts advertising a local match from that device.
+- `JOIN WIFI` scans the same Wi-Fi network and joins the first Dogfight host it
+  finds.
+
+Both devices must approve the iOS Local Network prompt the first time. Expected
+result after joining: both HUDs show `Wi-Fi multiplayer connected`, each device
+shows the other plane in blue/green, and gunfire from the other device can damage
+your aircraft.
+
+Simulator smoke test:
+
+```bash
+bash scripts/verify_sim_multiplayer.sh <host-sim-udid> <client-sim-udid>
+```
+
 ## Deploying to a physical device (declan-ipad / declan-iphone)
 
 > **Status:** deployed + running on declan-ipad. declan-iphone deploys the same
@@ -84,10 +109,13 @@ xcrun simctl launch booted com.cunliffe.dogfightadventures
 
 ```bash
 bash scripts/deploy.sh declan-ipad     # by name or UDID
+bash scripts/deploy_pair.sh "iPhone" "iPad (4)"
 ```
 
 `deploy.sh` is fully headless: it registers the device with App Store Connect via
-an API key, builds + signs (CPU-capped), then installs and launches.
+an API key, builds + signs (CPU-capped), then installs and launches. Pass
+`--autostart-host` or `--autostart-join-nearby` to launch directly into
+multiplayer; `deploy_pair.sh` does this for a host device and a joiner device.
 
 ### Three one-time prerequisites per device
 
